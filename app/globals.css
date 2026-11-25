@@ -1,0 +1,165 @@
+@import "tailwindcss" source(none);
+@import "./avalon/animations.css";
+@source "./";
+@source "../components";
+
+:root {
+  color-scheme: light;
+  --ink: #1f342e;
+  --paper: #f7f5ed;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+}
+.shell {
+  width: min(100% - 2.5rem, 64rem);
+  margin-inline: auto;
+}
+header {
+  border-bottom: 1px solid #c9cec3;
+}
+.header-row,
+nav,
+.account,
+.dialog-title {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.header-row {
+  min-height: 4.5rem;
+  flex-wrap: wrap;
+  padding-block: 0.55rem;
+}
+.brand {
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: -0.08em;
+}
+nav {
+  margin-right: auto;
+  font-size: 0.94rem;
+}
+main.shell {
+  padding-top: 0.5rem;
+}
+h1,
+h2 {
+  font-weight: 750;
+  letter-spacing: -0.055em;
+  line-height: 1.15;
+}
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+}
+h2 {
+  font-size: 1.45rem;
+}
+.lead {
+  margin-top: 1rem;
+  line-height: 1.7;
+}
+.button {
+  padding: 0.6rem 1rem;
+  border-radius: 0.65rem;
+  background: var(--ink);
+  color: white;
+  cursor: pointer;
+}
+.button:disabled {
+  opacity: 0.65;
+}
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.game-card {
+  position: relative;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border-radius: 1rem;
+}
+.game-card h2 {
+  margin-top: 3rem;
+  font-size: 2.25rem;
+}
+.game-card p {
+  margin-top: 0.75rem;
+}
+.game-card span {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  font-size: 1.65rem;
+}
+.game-card:hover {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+.avalon {
+  background: #25463b;
+  color: #fff8e8;
+}
+.marble {
+  background: #edc577;
+  color: #342b1e;
+}
+.panel,
+dialog {
+  background: #fffefa;
+  padding: clamp(1rem, 3vw, 2rem);
+  border-radius: 1rem;
+}
+.panel {
+  margin-top: 2rem;
+  border: 1px solid #d8dacf;
+}
+.table-scroll {
+  overflow: auto;
+}
+table {
+  margin-top: 1rem;
+  border-collapse: collapse;
+  width: 100%;
+  text-align: center;
+}
+th,
+td {
+  padding: 0.55rem;
+  border-bottom: 1px solid #dee5db;
+  white-space: nowrap;
+}
+.steps {
+  padding-left: 1.5rem;
+  margin-top: 1rem;
+  list-style: decimal;
+  line-height: 1.9;
+}
+dialog {
+  margin: auto;
+  width: min(100% - 2rem, 24rem);
+  color: var(--ink);
+}
+dialog::backdrop {
+  background: #13271fd4;
+}
+.dialog-title {
+  justify-content: space-between;
+}
+.providers {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.kakao {
+  background: #fee500;
+  color: #242016;
+}
+.google {
+  background: white;
+  color: #252525;
+  border: 1px solid #c5cac4;
+}

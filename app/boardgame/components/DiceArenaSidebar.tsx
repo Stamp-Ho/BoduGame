@@ -1,0 +1,310 @@
+'use client';
+
+import GoldCardManager from '../gold-cards/components/GoldCardManager';
+import { DiceArenaSidebarProps } from '../types/DiceArenaProps';
+import TileInspector from './TileInspector';
+import TeamPanel from './TeamPanel';
+
+export default function DiceArenaSidebar({
+	props: { game, editor, goldCard, view },
+}: DiceArenaSidebarProps) {
+	const { state: gameState, actions: gameActions } = game;
+	const { state: editorState, actions: editorActions } = editor;
+	const { state: goldCardState, actions: goldCardActions } = goldCard;
+	const { isFullscreen, onToggleFullscreen } = view;
+	const remainingSkipTurns = gameState.teamSkipTurns[gameState.currentTeamIndex] ?? 0;
+
+	const preventRoll =
+		gameState.isRolling ||
+		gameState.isMovingPawn ||
+		gameState.hasPendingGoldCard ||
+		Boolean(gameState.pendingTileEvent || gameState.eventNotice) ||
+		goldCardState.selectingTargetCardId !== null ||
+		editorState.tileSelectionMode === 'gold-card-effect-target';
+
+	return (
+		<aside
+			className={`flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-slate-800 bg-slate-900/95 p-4 text-slate-200 lg:min-h-0 lg:w-[22rem] lg:border-l lg:border-t-0 ${
+				isFullscreen ? 'min-h-0' : 'min-h-175'
+			}`}
+		>
+			<div className="grid grid-cols-2 gap-2">
+				<button
+					type="button"
+					disabled={editorState.isBusy || editorState.isLockBlocked || !editorState.canEdit || gameState.hasPendingGoldCard || gameState.isRolling || gameState.isMovingPawn}
+					onClick={editorActions.onToggleEditMode}
+					className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+						editorState.isEditMode
+							? 'border-amber-500/50 bg-amber-500/20 text-amber-300'
+							: 'border-slate-700 bg-slate-900 text-slate-300 hover:border-sky-400'
+					}`}
+				>
+					{editorState.isEditMode ? '완료' : '편집 시작'}
+				</button>
+				<button
+					type="button"
+					onClick={onToggleFullscreen}
+					className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-sky-400 hover:text-white"
+					aria-label={isFullscreen ? '전체화면 종료' : '전체화면'}
+				>
+					{isFullscreen ? '전체화면 종료' : '전체화면'}
+				</button>
+			</div>
+
+			{editorState.isLockBlocked && (
+				<p role="alert" className="text-xs leading-5 text-amber-300">
+					편집 잠금을 확인할 수 없어 입력과 저장을 중단했습니다. 작성한 내용은 유지됩니다.
+				</p>
+			)}
+			<fieldset disabled={editorState.isLockBlocked} className="contents">
+			{editorState.isEditMode && (
+				<section className="space-y-3 rounded-xl border border-slate-700 bg-slate-950/50 p-3">
+					<div>
+						<h2 className="text-sm font-bold text-white">격자 크기</h2>
+						<p className="mt-1 text-[11px] text-slate-400">
+							각 변은 3~20칸으로 설정할 수 있습니다.
+						</p>
+					</div>
+					<div className="grid grid-cols-3 gap-3">
+						<label className="space-y-1 text-xs font-semibold text-slate-300">
+							세로 (행)
+							<input
+								type="number"
+								min={3}
+								max={20}
+								step={1}
+								value={editorState.boardSize.rows}
+								onChange={(event) =>
+									editorActions.setGridSizeDraft((current) => ({
+										...current,
+										rows: event.target.value,
+									}))
+								}
+								className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
+							/>
+						</label>
+						<label className="space-y-1 text-xs font-semibold text-slate-300">
+							가로 (열)
+							<input
+								type="number"
+								min={3}
+								max={20}
+								step={1}
+								value={editorState.boardSize.cols}
+								onChange={(event) =>
+									editorActions.setGridSizeDraft((current) => ({
+										...current,
+										cols: event.target.value,
+									}))
+								}
+								className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
+							/>
+						</label>
+						<button
+							type="button"
+							onClick={editorActions.onApplyGridSize}
+							disabled={preventRoll}
+							className="w-full self-end rounded-lg border border-sky-600 bg-sky-600 px-3 h-9.5 text-xs font-bold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							격자 적용
+						</button>
+					</div>
+					{editorState.gridSizeError && (
+						<p className="text-xs text-rose-300">{editorState.gridSizeError}</p>
+					)}
+					<div className="border-t border-slate-800 pt-3">
+						<div className="flex gap-2">
+							<button
+								type="button"
+								onClick={editorActions.onToggleAddInnerTile}
+								className={`min-w-0 flex-1 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+									editorState.isAddingInnerTile
+										? 'border-sky-400 bg-sky-500/20 text-sky-200'
+										: 'border-slate-700 bg-slate-900 text-slate-300 hover:border-sky-400'
+								}`}
+							>
+								{editorState.isAddingInnerTile
+									? '내부 칸 추가 취소'
+									: '내부 격자 추가'}
+							</button>
+							<button
+								type="button"
+								aria-pressed={goldCardState.isManagerOpen}
+								onClick={goldCardActions.onToggleManager}
+								className={`min-w-0 flex-1 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${goldCardState.isManagerOpen ? 'border-amber-400 bg-amber-400/20 text-amber-100' : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-amber-400'}`}
+							>
+								황금 카드 덱 보기 {goldCardState.isManagerOpen ? 'ON' : 'OFF'}
+							</button>
+						</div>
+						{editorState.isAddingInnerTile && (
+							<p className="mt-2 text-[11px] leading-5 text-sky-200">
+								보드 안쪽의 표시된 칸을 클릭하면 타일이 추가됩니다.
+							</p>
+						)}
+					</div>
+				</section>
+			)}
+
+			{editorState.isEditMode && goldCardState.isManagerOpen && (
+				<GoldCardManager
+					cards={goldCardState.cards}
+					availableTiles={[...editorState.boardTilesMap.values()].map(
+						(tile) => ({ id: tile.id, label: tile.label }),
+					)}
+					selectingCardId={goldCardState.selectingTargetCardId}
+					onChange={goldCardActions.setCards}
+					onSelectTarget={goldCardActions.onSelectTargetCard}
+				/>
+			)}
+
+			</fieldset>
+			{!editorState.isEditMode ? (
+				<>
+					<div className="flex items-center justify-between">
+						<div>
+							<p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-400">
+								Game Board
+							</p>
+							<h2 className="text-lg font-black text-white">게임 기판</h2>
+						</div>
+						<span className="text-xs text-slate-400">
+							{editorState.boardSize.rows} × {editorState.boardSize.cols}
+						</span>
+					</div>
+					<div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2">
+						<div>
+							<p className="text-[11px] font-semibold text-slate-300">
+								이번 턴 주사위 개수
+							</p>
+							<p className="text-[10px] text-slate-500">
+								던지기 전에 선택하세요 (1~3개)
+							</p>
+						</div>
+						<div className="flex items-center gap-3">
+							<button
+								type="button"
+								aria-label="주사위 한 개 줄이기"
+								disabled={gameState.diceCount <= 1 || preventRoll}
+								onClick={() =>
+									gameActions.onChangeDiceCount(gameState.diceCount - 1)
+								}
+								className="h-8 w-8 rounded-lg border border-slate-600 text-lg font-bold text-white hover:bg-slate-800 disabled:opacity-40"
+							>
+								−
+							</button>
+							<span className="min-w-5 text-center text-lg font-black text-amber-300">
+								{gameState.diceCount}
+							</span>
+							<button
+								type="button"
+								aria-label="주사위 한 개 늘리기"
+								disabled={gameState.diceCount >= 3 || preventRoll}
+								onClick={() =>
+									gameActions.onChangeDiceCount(gameState.diceCount + 1)
+								}
+								className="h-8 w-8 rounded-lg border border-slate-600 text-lg font-bold text-white hover:bg-slate-800 disabled:opacity-40"
+							>
+								+
+							</button>
+						</div>
+					</div>
+					<button
+						type="button"
+						disabled={preventRoll}
+						onClick={gameActions.onRollDice}
+						className="w-full rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition-all hover:from-blue-500 hover:to-indigo-500 disabled:pointer-events-none disabled:opacity-50"
+					>
+						{gameState.isRolling
+							? '주사위 굴리는 중...'
+							: gameState.isMovingPawn
+								? '말 이동 중...'
+								: remainingSkipTurns > 0 ? '턴 넘기기' : '주사위 던지기'}
+					</button>
+					{remainingSkipTurns > 0 && (
+						<p className="text-center text-xs font-semibold text-amber-300">
+							탈출로 찾기({remainingSkipTurns}턴 남음) · 술 마시기 벌칙
+						</p>
+					)}
+
+					<div className="grid grid-cols-3 gap-3">
+						<div className="rounded-xl border border-slate-700 bg-slate-950/70 p-3">
+							<p className="text-[11px] font-semibold text-slate-400">
+								주사위 결과
+							</p>
+							<p className="mt-1 text-2xl font-black text-amber-400">
+								{gameState.isRolling ? '...' : gameState.totalScore || '-'}
+							</p>
+							<p className="mt-1 text-[10px] text-slate-500">
+								{gameState.scores.length
+									? gameState.scores.join(' + ')
+									: '대기 중'}
+							</p>
+						</div>
+						<div className="rounded-xl border border-slate-700 bg-slate-950/70 p-3 col-span-2">
+							<p className="text-[11px] font-semibold text-slate-400">
+								현재 턴
+							</p>
+							<p
+								className="mt-1 truncate text-lg font-black"
+								style={{
+									color: gameState.teams[gameState.currentTeamIndex].color,
+								}}
+							>
+								{gameState.teams[gameState.currentTeamIndex].name}
+							</p>
+							<p className="mt-1 text-[10px] text-slate-500">
+								말 위치{' '}
+								{gameState.teamTileIds[gameState.currentTeamIndex]?.startsWith(
+									'inner_',
+								)
+									? editorState.boardTilesMap.get(
+											gameState.teamTileIds[gameState.currentTeamIndex],
+										)?.label ||
+										gameState.teamTileIds[gameState.currentTeamIndex]
+									: `${gameState.playerTileIndex}번`}
+							</p>
+						</div>
+					</div>
+
+					<TeamPanel game={game} tiles={editorState.boardTilesMap} disabled={preventRoll || editorState.isBusy} />
+					<button
+						type="button"
+						disabled={preventRoll}
+						onClick={gameActions.onRestartGame}
+						className="w-full rounded-xl border border-rose-500/40 bg-rose-950/30 px-4 py-2.5 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-900/50 disabled:opacity-40"
+					>
+						게임 처음부터 다시하기
+					</button>
+				</>
+			) : editorState.selectedTileId ? (
+				<fieldset disabled={!editorState.canEditSelectedTile} className="contents">
+				<TileInspector
+					tile={
+						editorState.boardTilesMap.get(editorState.selectedTileId) || null
+					}
+					availableTiles={[...editorState.boardTilesMap.values()]}
+					isMovingPosition={editorState.isMovingInnerTile}
+					isSelectingNextTile={editorState.tileSelectionMode === 'next'}
+					isSelectingTeleportTile={editorState.tileSelectionMode === 'teleport'}
+					isSelectingDirectionTile={
+						editorState.tileSelectionMode === 'direction'
+					}
+					onSelectNextTile={() => editorActions.onBeginTileSelection('next')}
+					onSelectTeleportTile={() =>
+						editorActions.onBeginTileSelection('teleport')
+					}
+					onSelectDirectionTile={() =>
+						editorActions.onBeginTileSelection('direction')
+					}
+					onMovePosition={editorActions.onMoveTilePosition}
+					onUpdate={editorActions.onUpdateTile}
+					onDelete={editorActions.onDeleteTile}
+					onClose={editorActions.onCloseTileInspector}
+				/>
+				</fieldset>
+			) : (
+				<div>선택된 타일이 없습니다.</div>
+			)}
+		</aside>
+	);
+}
