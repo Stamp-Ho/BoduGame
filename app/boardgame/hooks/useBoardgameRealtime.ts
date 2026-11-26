@@ -39,6 +39,11 @@ export function useBoardgameRealtime(options: PollOptions) {
     async function refresh() {
       dirty = true;
       if (running || document.hidden) return;
+      if (deferred()) {
+        clearTimeout(timer);
+        timer = setTimeout(refresh,500);
+        return;
+      }
       running = true;
       try {
         while (active && dirty) {
