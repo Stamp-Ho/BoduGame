@@ -142,6 +142,15 @@ export function buildArenaTileData({
 			},
 		});
 	}
+	for (const tile of tileDataMap.values()) {
+		tile.nextTileIds = tile.nextTileIds.filter(id => tileDataMap.has(id));
+		if (tile.category === 'OUTER') {
+			const index = boardTiles.findIndex(outer => outer.id === tile.id);
+			if (index === boardTiles.length - 1 || !tile.nextTileIds.length) {
+				tile.nextTileIds = [boardTiles[(index + 1) % boardTiles.length].id];
+			}
+		}
+	}
 	return tileDataMap;
 }
 
