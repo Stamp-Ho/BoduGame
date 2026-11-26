@@ -13,7 +13,7 @@ import { getBoardgame } from "../actions";
 import { GoldCardData } from '../gold-cards/types';
 import { TileSelectionMode } from '../types/DiceArenaProps';
 import { ArenaRuntime, OrbitSnapshot } from '../types/arena';
-import { restoreOrbit, snapshotOrbit } from '../utils/arenaControls';
+import { focusTileOrbit, restoreOrbit, snapshotOrbit } from '../utils/arenaControls';
 import { getOrbitDefaults, withTileLockOwner } from '../utils/arena';
 import { useBoardgameEditLease } from './useBoardgameEditLease';
 
@@ -149,12 +149,7 @@ export function useTileEditor({
 			}
 
 			const tileMesh = tileMeshMapRef.current.get(tileId);
-			if (tileMesh) {
-				orbit.targetCenter.set(tileMesh.position.x, 0, tileMesh.position.z);
-				orbit.targetTheta = tileMesh.rotation.y;
-				orbit.targetPhi = 0.001;
-				orbit.targetRadius = 12.5;
-			}
+			if (tileMesh) focusTileOrbit(orbit, tileMesh);
 		} else if (!tileId && runtime && orbitSnapshotRef.current) {
 			if (!runtime.orbit.preRollView) restoreOrbit(runtime.orbit, orbitSnapshotRef.current);
 			orbitSnapshotRef.current = null;

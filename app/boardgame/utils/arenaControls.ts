@@ -1,4 +1,4 @@
-import { getTileDrawing } from "../drawing/utils/session";
+import { getTileDrawing } from '../drawing/utils/session';
 import * as THREE from 'three';
 import {
 	ArenaOrbitState,
@@ -71,14 +71,33 @@ export function restoreOrbit(orbit: ArenaOrbitState, view: OrbitSnapshot) {
 	orbit.targetRadius = view.targetRadius;
 }
 
+export function focusTileOrbit(orbit: ArenaOrbitState, tile: THREE.Object3D) {
+	orbit.targetCenter.set(tile.position.x, 0, tile.position.z);
+	orbit.targetTheta = tile.rotation.y;
+	orbit.targetPhi = 0.001;
+	orbit.targetRadius = 12.5;
+}
+
 export function focusDiceForRoll(orbit: ArenaOrbitState, onArrive: () => void) {
 	orbit.preRollView = snapshotOrbit(orbit);
 	orbit.isDragging = false;
 	orbit.keys = createOrbitKeys();
-	transitionOrbit(orbit, { center: new THREE.Vector3(), theta: 0, phi: 0.001, radius: DICE_VIEW_RADIUS }, onArrive);
+	transitionOrbit(
+		orbit,
+		{
+			center: new THREE.Vector3(),
+			theta: 0,
+			phi: 0.001,
+			radius: DICE_VIEW_RADIUS,
+		},
+		onArrive,
+	);
 }
 
-export function returnToPreRollView(orbit: ArenaOrbitState, onArrive: () => void) {
+export function returnToPreRollView(
+	orbit: ArenaOrbitState,
+	onArrive: () => void,
+) {
 	const saved = orbit.preRollView;
 	if (!saved) return onArrive();
 	transitionOrbit(orbit, saved, () => {
@@ -112,8 +131,10 @@ export function stepOrbitCamera(
 	camera: THREE.PerspectiveCamera,
 	dt: number,
 	maxRadius: number,
+	tileRotation?: number,
 ) {
-	const moveSpeed = 18 * dt;
+	const lockHeading = tileRotation !== undefined && !orbitState.preRollView;
+	const moveSpeed = 18 * (orbitState.radius / 30) * dt;
 	const forwardX = -Math.sin(orbitState.theta);
 	const forwardZ = -Math.cos(orbitState.theta);
 	const rightX = -forwardZ;
@@ -136,15 +157,26 @@ export function stepOrbitCamera(
 		orbitState.targetCenter.z -= rightZ * moveSpeed;
 	}
 	const rotateSpeed = 1.8 * dt;
-	if (!getTileDrawing() && orbitState.keys.q) orbitState.targetTheta -= rotateSpeed;
-	if (!getTileDrawing() && orbitState.keys.e) orbitState.targetTheta += rotateSpeed;
+	if (lockHeading) {
+		const angle = tileRotation - orbitState.theta;
+		orbitState.targetTheta =
+			orbitState.theta + Math.atan2(Math.sin(angle), Math.cos(angle));
+	} else if (!getTileDrawing()) {
+		if (orbitState.keys.q) orbitState.targetTheta -= rotateSpeed;
+		if (orbitState.keys.e) orbitState.targetTheta += rotateSpeed;
+	}
 
 	const zoomFactor = Math.exp(1.5 * dt);
 	if (orbitState.keys.z) orbitState.targetRadius /= zoomFactor;
 	if (orbitState.keys.x) orbitState.targetRadius *= zoomFactor;
 	orbitState.targetRadius = Math.max(
-		10,
-		Math.min(orbitState.preRollView ? Math.max(maxRadius, DICE_VIEW_RADIUS) : maxRadius, orbitState.targetRadius),
+		3,
+		Math.min(
+			orbitState.preRollView
+				? Math.max(maxRadius, DICE_VIEW_RADIUS)
+				: maxRadius,
+			orbitState.targetRadius,
+		),
 	);
 
 	orbitState.targetCenter.x = Math.max(
@@ -160,7 +192,9 @@ export function stepOrbitCamera(
 		stepOrbitTransition(orbitState, dt);
 	} else {
 		orbitState.center.lerp(orbitState.targetCenter, 0.1);
-		orbitState.theta += (orbitState.targetTheta - orbitState.theta) * 0.1;
+		const headingEase = lockHeading ? 1 - Math.exp(-9 * dt) : 0.1;
+		orbitState.theta +=
+			(orbitState.targetTheta - orbitState.theta) * headingEase;
 		orbitState.phi += (orbitState.targetPhi - orbitState.phi) * 0.1;
 		orbitState.radius += (orbitState.targetRadius - orbitState.radius) * 0.1;
 	}
@@ -168,16 +202,12 @@ export function stepOrbitCamera(
 	// ★ 중심점(center)을 기준으로 카메라 구면 좌표 계산
 	camera.position.x =
 		orbitState.center.x +
-		orbitState.radius *
-			Math.sin(orbitState.phi) *
-			Math.sin(orbitState.theta);
+		orbitState.radius * Math.sin(orbitState.phi) * Math.sin(orbitState.theta);
 	camera.position.y =
 		orbitState.center.y + orbitState.radius * Math.cos(orbitState.phi);
 	camera.position.z =
 		orbitState.center.z +
-		orbitState.radius *
-			Math.sin(orbitState.phi) *
-			Math.cos(orbitState.theta);
+		orbitState.radius * Math.sin(orbitState.phi) * Math.cos(orbitState.theta);
 
 	// ★ (0, 0, 0) 대신 이동된 center를 바라봄
 	camera.lookAt(orbitState.center);
@@ -188,6 +218,7 @@ interface AttachArenaControlsParams {
 	orbitState: ArenaOrbitState;
 	pointerDownPos: { current: { x: number; y: number } };
 	getViewMode: () => '2.5d' | 'top';
+	getEditingTile: () => THREE.Object3D | undefined;
 	boardSize: { rows: number; cols: number };
 	// 5픽셀 미만으로 움직인 포인터 업 = 클릭(타일 피킹)
 	onClick: (clientX: number, clientY: number) => void;
@@ -204,12 +235,13 @@ export function attachArenaControls({
 	orbitState,
 	pointerDownPos,
 	getViewMode,
+	getEditingTile,
 	boardSize,
 	onClick,
 	onResetView,
 }: AttachArenaControlsParams) {
 	const handlePointerDown = (e: MouseEvent | TouchEvent) => {
- if(getTileDrawing())return;
+		if (getTileDrawing()) return;
 		if (orbitState.preRollView) return;
 		canvas.focus();
 		const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
@@ -231,8 +263,7 @@ export function attachArenaControls({
 		orbitState.prevX = clientX;
 		orbitState.prevY = clientY;
 
-		// 탑뷰일 때는 수평 회전(Theta)까지 완전 고정할지 여부에 따라 조정 가능
-		orbitState.targetTheta -= deltaX * 0.007;
+		if (!getEditingTile()) orbitState.targetTheta -= deltaX * 0.007;
 
 		// viewModeRef.current를 사용해 최신 상태 확인
 		orbitState.targetPhi =
@@ -245,7 +276,7 @@ export function attachArenaControls({
 	};
 
 	const handlePointerUp = (e: MouseEvent | TouchEvent) => {
- if(getTileDrawing())return;
+		if (getTileDrawing()) return;
 		orbitState.isDragging = false;
 		if (orbitState.preRollView) return;
 
@@ -270,7 +301,7 @@ export function attachArenaControls({
 	const handleWheel = (e: WheelEvent) => {
 		if (orbitState.preRollView) return;
 		orbitState.targetRadius = Math.max(
-			10,
+			3,
 			Math.min(
 				Math.max(boardSize.rows, boardSize.cols) * 8,
 				orbitState.targetRadius + e.deltaY * 0.025,
@@ -295,9 +326,16 @@ export function attachArenaControls({
 			e.stopPropagation();
 			orbitState.keys[key] = true;
 		}
-		if (!getTileDrawing() && (e.key.toLowerCase() === 'r' || e.code === 'KeyR')) {
+		if (e.key.toLowerCase() === 'r' || e.code === 'KeyR') {
+			const tile = getEditingTile();
+			if (!tile && getTileDrawing()) return;
 			e.preventDefault();
 			e.stopPropagation();
+			orbitState.keys = createOrbitKeys();
+			if (tile) {
+				focusTileOrbit(orbitState, tile);
+				return;
+			}
 
 			const defaults = getOrbitDefaults(
 				getViewMode(),
@@ -312,7 +350,6 @@ export function attachArenaControls({
 			orbitState.targetPhi = defaults.phi;
 			orbitState.radius = defaults.radius;
 			orbitState.targetRadius = defaults.radius;
-			orbitState.keys = createOrbitKeys();
 			onResetView();
 		}
 	};

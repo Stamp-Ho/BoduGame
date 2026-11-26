@@ -2,6 +2,7 @@ import { attachTileDrawing } from "../drawing/utils/tileInput";
 import { getTileDrawing } from "../drawing/utils/session";
 import {
 	useEffect,
+	useRef,
 	type Dispatch,
 	type RefObject,
 	type SetStateAction,
@@ -17,6 +18,7 @@ import { ArenaRuntime, OrbitSnapshot } from '../types/arena';
 import {
 	attachArenaControls,
 	createOrbitState,
+	snapshotOrbit,
 	stepOrbitCamera,
 } from '../utils/arenaControls';
 import { syncDiceMeshes } from '../utils/arenaDice';
@@ -143,6 +145,7 @@ export function useArenaScene({
 	selectTile,
 	syncDiceCount,
 }: ArenaSceneParams) {
+	const editingView = useRef<{ boardId: string | null; view: OrbitSnapshot } | null>(null);
 	useEffect(() => {
 		if (!canvasRef.current || !containerRef.current) return;
 		const tileMeshMap = tileMeshMapRef.current;
@@ -288,11 +291,16 @@ export function useArenaScene({
 
 		// 6. 주사위 템플릿 및 Orbit 상태 설정
 		const diceTemplate = createHighQualityDiceTemplate();
+		const previousView = editingView.current;
 		const orbitState = createOrbitState(
 			getOrbitDefaults(viewModeRef.current, boardSize.rows, boardSize.cols),
-			cameraViewRestoreRef.current,
+			cameraViewRestoreRef.current ??
+				(previousView?.boardId === activeBoardgameId && editModeRef.current && selectedTileIdRef.current
+					? previousView.view
+					: null),
 		);
 		cameraViewRestoreRef.current = null;
+		editingView.current = null;
 
 		runtimeRef.current = {
 			scene,
@@ -314,6 +322,12 @@ export function useArenaScene({
 		// 7. 애니메이션 & 렌더 루프
 		let lastCallTime = performance.now();
         let previewRevision = "";
+		const initialCursor = renderer.domElement.style.cursor;
+		let wasDrawing = false;
+		const getEditingTile = () => {
+			const tileId = selectedTileIdRef.current;
+			return editModeRef.current && tileId ? tileMeshMap.get(tileId) : undefined;
+		};
 
 		const animate = () => {
 			const time = performance.now();
@@ -327,6 +341,7 @@ export function useArenaScene({
 				camera,
 				dt,
 				Math.max(boardSize.rows, boardSize.cols) * 8,
+				getEditingTile()?.rotation.y,
 			);
 
 			// 주사위 물리 동기화 및 정지 판정
@@ -339,6 +354,10 @@ export function useArenaScene({
 			}
 
             const drawing=getTileDrawing();
+			if (Boolean(drawing) !== wasDrawing) {
+				wasDrawing = Boolean(drawing);
+				renderer.domElement.style.cursor = wasDrawing ? 'default' : initialCursor;
+			}
             const previewKey=drawing?drawing.tileId+":"+drawing.revision:"";
             if(drawing&&previewKey!==previewRevision){
               const mesh=tileMeshMap.get(drawing.tileId),tile=boardTilesMapRef.current.get(drawing.tileId);
@@ -561,16 +580,22 @@ export function useArenaScene({
 			orbitState,
 			pointerDownPos,
 			getViewMode: () => viewModeRef.current,
+			getEditingTile,
 			boardSize,
 			onClick: handleCanvasClick,
 			onResetView: () => {
 				orbitSnapshotRef.current = null;
+				selectedTileIdRef.current = null;
 				setSelectedTileId(null);
 				if (selectionBoxRef.current) selectionBoxRef.current.visible = false;
 			},
 		});
 
 		return () => {
+			renderer.domElement.style.cursor = initialCursor;
+			if (getEditingTile()) {
+				editingView.current = { boardId: activeBoardgameId, view: snapshotOrbit(orbitState) };
+			}
 			window.removeEventListener('resize', handleResize);
 			resizeObserver.disconnect();
 			detachControls();
