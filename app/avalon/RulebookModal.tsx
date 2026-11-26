@@ -111,7 +111,7 @@ function RoleList({
       {(["good", "evil"] as const).map((side) => (
         <div key={side}>
           <h3
-            className={`font-bold ${side === "good" ? "text-blue-700" : "text-red-700"}`}
+            className={`font-bold ${side === "good" ? "text-blue-700" : "text-red-600"}`}
           >
             {side === "good" ? "선 진영" : "악 진영"}
           </h3>
@@ -231,7 +231,7 @@ function RuleSection({
   return (
     <details
       ref={detailsRef}
-      className="rounded-xl border border-slate-200 bg-white p-3 open:border-violet-200 open:bg-violet-50/30"
+      className="rounded-xl border border-slate-300 bg-white p-3 open:border-violet-200 open:bg-violet-50/30"
     >
       <summary className="cursor-pointer text-base font-semibold text-slate-900">
         {title}
@@ -289,7 +289,7 @@ export default function RulebookModal({
         onClose();
       }}
       aria-labelledby="avalon-rulebook-title"
-      className={`fixed inset-0 m-auto max-h-[90dvh] w-[min(94vw,52rem)] max-w-none overflow-hidden rounded-2xl border-2 border-violet-300 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/70 ${turnKey ? styles.attention : ""}`}
+      className={`fixed inset-0 m-auto max-h-[90dvh] !w-[min(94vw,52rem)] !max-w-none overflow-hidden rounded-2xl border-2 border-violet-300 bg-white !p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/70 ${turnKey ? styles.attention : ""}`}
     >
       {toast?.key === turnKey && (
         <div
@@ -300,7 +300,7 @@ export default function RulebookModal({
         </div>
       )}
       <div className="flex max-h-[88dvh] flex-col">
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-300 bg-white px-4 py-3 sm:px-6">
           <h2
             id="avalon-rulebook-title"
             className="flex items-center gap-2 text-lg font-bold"
@@ -311,7 +311,7 @@ export default function RulebookModal({
             type="button"
             onClick={onClose}
             aria-label="룰북 닫기"
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-violet-600"
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-violet-600"
           >
             <X size={20} />
           </button>
@@ -345,7 +345,7 @@ export default function RulebookModal({
               {Object.entries(TEAM_COUNTS).map(([count, sizes]) => (
                 <li key={count} className="rounded-lg bg-slate-50 px-3 py-2">
                   <strong>{count}명</strong> · 선 {GOOD_COUNTS[Number(count)]} /
-                  악 {Number(count) - GOOD_COUNTS[Number(count)]} · 1~5차{" "}
+                  악 {Number(count) - GOOD_COUNTS[Number(count)]} · 원정:{" "}
                   {sizes.join(" / ")}명
                 </li>
               ))}
@@ -354,8 +354,7 @@ export default function RulebookModal({
           <RuleSection title="기본 직업 (성직자 포함)">
             <p>
               멀린과 암살자는 필수입니다. 일반 선은 충신, 일반 악은
-              하수인입니다. 성직자는 여기서 함께 설명하지만 게임 설정에서는
-              확장을 켜야 선택할 수 있습니다.
+              하수인입니다. 성직자는 확장 없이 선택할 수 있는 기본 직업입니다.
             </p>
             <RoleList roles={basicRoles} ordinary />
           </RuleSection>

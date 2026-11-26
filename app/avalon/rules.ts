@@ -25,7 +25,7 @@ export const ROLES = {
   oberon: { name: "오베론", side: "evil", expansion: false },
   morgana: { name: "모르가나", side: "evil", expansion: false },
   evil_lancelot: { name: "악 랜슬롯", side: "evil", expansion: false },
-  cleric: { name: "성직자", side: "good", expansion: true },
+  cleric: { name: "성직자", side: "good", expansion: false },
   troublemaker: { name: "문제아", side: "good", expansion: true },
   untrustworthy: { name: "불신의 충신", side: "good", expansion: true },
   good_rogue: { name: "선 도적", side: "good", expansion: true },
@@ -233,7 +233,11 @@ export function defaultConfig(count = 5): Config {
 export function normalizeConfig(c: Config): Config {
   const clean = (slots: Role[][]) =>
     slots.map((slot) => slot.filter((r) => r in ROLES));
-  return { ...c, goodSlots: clean(c.goodSlots), evilSlots: clean(c.evilSlots) };
+  const goodSlots: Role[][] = clean(c.goodSlots).map(slot => slot.filter(role => role !== "merlin"));
+  const evilSlots: Role[][] = clean(c.evilSlots).map(slot => slot.filter(role => role !== "assassin"));
+  if (goodSlots.length) goodSlots[0] = ["merlin"];
+  if (evilSlots.length) evilSlots[0] = ["assassin", ...evilSlots[0]];
+  return { ...c, goodSlots, evilSlots };
 }
 
 export function validateConfig(c: Config): string | null {
@@ -248,6 +252,8 @@ export function validateConfig(c: Config): string | null {
     c.evilSlots.length !== c.playerCount - GOOD_COUNTS[c.playerCount]
   )
     return "진영별 자리 수가 맞지 않습니다.";
+  if (c.goodSlots[0]?.length !== 1 || c.goodSlots[0][0] !== "merlin" || !c.evilSlots[0]?.includes("assassin"))
+    return "선 진영 1번은 멀린, 악 진영 1번은 암살자로 고정됩니다.";
   const all = [...c.goodSlots, ...c.evilSlots];
   for (let i = 0; i < all.length; i++) {
     const roles = all[i];

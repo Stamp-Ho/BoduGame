@@ -54,6 +54,9 @@ export function ConfigEditor({
     setConfig({
       ...config,
       [side === "good" ? "goodSlots" : "evilSlots"]: slots,
+      ...((role === "good_lancelot" || role === "evil_lancelot") && slots[index].includes(role)
+        ? { lancelot: "variant2" as const }
+        : {}),
     });
   };
   return (
@@ -102,9 +105,15 @@ export function ConfigEditor({
                 return (
                   <div
                     key={i}
-                    className="rounded-xl border border-slate-200 p-3"
+                    className="rounded-xl border border-slate-300 p-3"
                   >
-                    <p className="mb-2 text-sm font-semibold">
+                    <p
+                      className={
+                        side === "good" && i === 0
+                          ? "text-sm font-semibold"
+                          : "mb-2 text-sm font-semibold"
+                      }
+                    >
                       {i + 1}번 자리 ·{" "}
                       {slot.length > 0
                         ? slot.map((r) => ROLES[r].name).join(" + ")
@@ -112,24 +121,29 @@ export function ConfigEditor({
                           ? "충신"
                           : "하수인"}
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(Object.keys(ROLES) as Role[])
-                        .filter(
-                          (role) =>
-                            ROLES[role].side === side &&
-                            (config.expansion || !ROLES[role].expansion),
-                        )
-                        .map((role) => (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => toggleRole(side, i, role)}
-                            className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${slot.includes(role) ? "border-violet-600 bg-violet-100 text-violet-900" : "border-slate-200 text-slate-600"}`}
-                          >
-                            {ROLES[role].name}
-                          </button>
-                        ))}
-                    </div>
+                    {!(side === "good" && i === 0) && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {(Object.keys(ROLES) as Role[])
+                          .filter(
+                            (role) =>
+                              role !== "merlin" &&
+                              role !== "assassin" &&
+                              !(side === "good" && i === 0) &&
+                              ROLES[role].side === side &&
+                              (config.expansion || !ROLES[role].expansion),
+                          )
+                          .map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => toggleRole(side, i, role)}
+                              className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${slot.includes(role) ? "border-violet-600 bg-violet-100 text-violet-900" : "border-slate-300 text-slate-500"}`}
+                            >
+                              {ROLES[role].name}
+                            </button>
+                          ))}
+                      </div>
+                    )}
                   </div>
                 );
               },
@@ -137,7 +151,7 @@ export function ConfigEditor({
           </div>
         </div>
       ))}
-      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+      <div className="mt-5 grid gap-2 grid-cols-2">
         {(
           [
             ["lady", "호수의 여인"],
@@ -158,7 +172,7 @@ export function ConfigEditor({
           .map(([key, label]) => (
             <label
               key={key}
-              className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 text-sm"
+              className="flex items-center gap-2 rounded-xl bg-slate-100 p-3 text-sm"
             >
               <input
                 type="checkbox"
@@ -189,7 +203,7 @@ export function ConfigEditor({
         </select>
       </label>
       {config.lancelot !== "off" && (
-        <p className="mt-2 text-xs text-slate-600">
+        <p className="mt-2 text-xs text-slate-500">
           두 변형 모두 2·3·4차 원정 뒤, 호수의 여인 확인 후 충성심 카드를
           뽑습니다. 7장 중 전환 2장입니다.
         </p>
