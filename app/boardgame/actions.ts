@@ -4,6 +4,8 @@ import { gameRpc } from "@/server/game-rpc";
 import { sessionDatabase } from "@/server/auth/config";
 import { boardResult } from "./server/result";
 import { decodeBoard, type BoardRow } from "./server/snapshot";
+import { readBoardDrawings } from "./server/drawings";
+import { currentPlayer } from "@/server/auth/session";
 import type { BoardgameSummary, CreatedBoard } from "./types/session";
 export type { BoardgameSummary, BoardgameSnapshot, BoardgameResult } from "./types/session";
 
@@ -13,15 +15,22 @@ export async function listBoardgames() {
 
 export async function getBoardgame(id: string) {
   return boardResult(async () => {
-    const board = await gameRpc<BoardRow | null>("read_boardgame", { p_board: id }, true);
+    const actor = await currentPlayer();
+    const db = sessionDatabase();
+    const { data, error } = await db.rpc("read_boardgame", { p_board: id, p_actor: actor?.id ?? null });
+    if (error) throw new Error(error.message);
+    const board = data as BoardRow | null;
     if (!board) throw new Error("접근할 수 없는 보드입니다.");
     const snapshot=decodeBoard(board);
-    const ids=snapshot.tiles.map(tile=>tile.action.params?.drawingId).filter((id):id is string=>typeof id==="string");
-    if(ids.length){
-      const {data,error}=await sessionDatabase().from("boardgame_drawings").select("id,version").in("id",ids);
-      if(error)throw new Error("그림 정보를 불러오지 못했습니다.");
-      const versions=new Map((data??[]).map(row=>[row.id,row.version]));
-      for(const tile of snapshot.tiles){const id=tile.action.params?.drawingId;if(typeof id==="string")tile.action.params={...tile.action.params,drawingVersion:versions.get(id)??0};}
+    const ids = [...new Set(snapshot.tiles.map(tile => tile.action.params?.drawingId)
+      .filter((id): id is string => typeof id === "string"))];
+    snapshot.drawings = await readBoardDrawings(db, ids, actor?.id);
+    const versions = new Map(snapshot.drawings.map(row => [row.id, row.version]));
+    for (const tile of snapshot.tiles) {
+      const drawingId = tile.action.params?.drawingId;
+      if (typeof drawingId === "string") {
+        tile.action.params = { ...tile.action.params, drawingVersion: versions.get(drawingId) ?? 0 };
+      }
     }
     return snapshot;
   });

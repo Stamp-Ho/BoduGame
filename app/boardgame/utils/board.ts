@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { drawGoldCardArtwork } from '../gold-cards/utils/cardArtwork';
 import type { BoardTileData } from '../types/board';
+import { loadDrawingImage } from '../drawing/utils/images';
 
 export interface BoardTile {
 	id: string;
@@ -138,9 +139,16 @@ export function createTileTexture(
 	return texture;
 }
 
+export function tileDrawingBounds(textureHeight: number, imageWidth: number, imageHeight: number) {
+	const scale = Math.min(512 / imageWidth, textureHeight / imageHeight);
+	const width = imageWidth * scale;
+	const height = imageHeight * scale;
+	return { x: (512 - width) / 2, y: (textureHeight - height) / 2, width, height };
+}
+
 export function createDynamicTileTexture(
  label:string, bgColor='#1e293b', textColor='#ffffff', isGoldCardTile=false,
- aspectRatio=1, drawingId?:string, drawingCanvas?:HTMLCanvasElement,
+ aspectRatio=1, drawing?:{ id:string; version:number }, drawingCanvas?:HTMLCanvasElement,
 ): THREE.CanvasTexture {
  const canvas=document.createElement('canvas');
  canvas.width=512;canvas.height=Math.round(512/aspectRatio);
@@ -152,8 +160,9 @@ export function createDynamicTileTexture(
  if(!ctx||disposed)return;
  ctx.clearRect(0,0,canvas.width,canvas.height);
  ctx.fillStyle=bgColor;ctx.fillRect(0,0,canvas.width,canvas.height);
- if(image){const scale=Math.min(canvas.width/image.width,canvas.height/image.height);
- ctx.drawImage(image,(canvas.width-image.width*scale)/2,(canvas.height-image.height*scale)/2,image.width*scale,image.height*scale);}
+ if(image){
+ const bounds=tileDrawingBounds(canvas.height,image.width,image.height);
+ ctx.drawImage(image,bounds.x,bounds.y,bounds.width,bounds.height);}
 		// 테두리
 		ctx.strokeStyle = '#38bdf8';
 		ctx.lineWidth = 8;
@@ -187,10 +196,7 @@ export function createDynamicTileTexture(
  texture.needsUpdate=true;
  }
  render(drawingCanvas);
- if(drawingId&&!drawingCanvas){
- const image=new Image();image.onload=()=>render(image);
- image.src='/boardgame/drawing/image?id='+encodeURIComponent(drawingId);
- }
+ if(drawing&&!drawingCanvas) void loadDrawingImage(drawing.id,drawing.version).then(render).catch(()=>{});
  return texture;
 }
 
@@ -199,12 +205,15 @@ export function createTileTopTexture(
 	tile: Pick<BoardTileData, 'label' | 'color' | 'textColor' | 'action'>,
 	geometry: THREE.BoxGeometry,
 ) {
+	const { drawingId, drawingVersion } = tile.action.params ?? {};
 	return createDynamicTileTexture(
 		tile.label,
 		tile.color,
 		tile.textColor,
 		tile.action.type === 'DRAW_GOLD_CARD',
 		geometry.parameters.width / geometry.parameters.depth,
- typeof tile.action.params?.drawingId === 'string' ? tile.action.params.drawingId : undefined,
+		typeof drawingId === 'string' && typeof drawingVersion === 'number' && drawingVersion > 0
+			? { id: drawingId, version: drawingVersion }
+			: undefined,
 	);
 }

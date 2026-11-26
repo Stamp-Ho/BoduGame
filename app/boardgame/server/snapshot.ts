@@ -7,7 +7,7 @@ type TileRow = {
   label: string; sub_label: string; color?: string; text_color?: string; icon?: string;
   action_type: BoardTileData["action"]["type"]; action_params: BoardTileData["action"]["params"]; is_locked: boolean;
 };
-export type BoardRow = Omit<BoardgameSnapshot,"tiles"|"gold_cards"> & {
+export type BoardRow = Omit<BoardgameSnapshot,"tiles"|"gold_cards"|"drawings"> & {
   tiles: TileRow[]; edges: { source_tile_id: string; target_tile_id: string }[];
   cards: { id: string; title: string; description: string; event_type: GoldCardData["event"]["type"]; event_params: object }[];
 };
@@ -18,7 +18,7 @@ export function decodeBoard(row: BoardRow): BoardgameSnapshot {
     targets.push(edge.target_tile_id);
     edges.set(edge.source_tile_id, targets);
   }
-  return { id: row.id, name: row.name, grid_rows: row.grid_rows, grid_cols: row.grid_cols,
+  return { id: row.id, name: row.name, grid_rows: row.grid_rows, grid_cols: row.grid_cols, drawings: [],
     tiles: row.tiles.map(t => ({
       id: t.id, category: t.category, gridR: t.grid_row, gridC: t.grid_col, position: { x: 0, y: 0.2, z: 0 },
       rotationY: 0, label: t.label, subLabel: t.sub_label, color: t.color, textColor: t.text_color, icon: t.icon,

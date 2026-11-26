@@ -7,8 +7,9 @@ export type Drawing = {
   version: number;
   path: string;
 };
+export type BoardDrawing = Pick<Drawing, "id" | "name" | "height" | "version"> & { canEdit: boolean };
 export type Tool =
-  "pen" | "eraser" | "fill" | "select" | "line" | "curve" | "rect" | "ellipse";
+  "pen" | "eraser" | "fill" | "eyedropper" | "select" | "line" | "curve" | "rect" | "ellipse";
 export type Point = {
   x: number;
   y: number;

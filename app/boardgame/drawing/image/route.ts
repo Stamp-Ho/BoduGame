@@ -1,9 +1,10 @@
 import { currentPlayer } from "@/server/auth/session";
 import { sessionDatabase } from "@/server/auth/config";
 export async function GET(request: Request) {
+  const params = new URL(request.url).searchParams;
   const db = sessionDatabase(),
     actor = await currentPlayer(),
-    id = new URL(request.url).searchParams.get("id");
+    id = params.get("id");
   const { data } = await db
     .from("boardgame_drawings")
     .select("*")
@@ -28,6 +29,9 @@ export async function GET(request: Request) {
     }
   }
   if (!allowed) return new Response(null, { status: 403 });
+  if (params.has("v") && params.get("v") !== String(data.version)) {
+    return new Response(null, { status: 409 });
+  }
   const { data: file, error } = await db.storage
     .from("boardgame-drawings")
     .download(data.path);
