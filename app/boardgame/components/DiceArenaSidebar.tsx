@@ -73,7 +73,7 @@ export default function DiceArenaSidebar({
 								min={3}
 								max={20}
 								step={1}
-								value={editorState.boardSize.rows}
+								value={editorState.gridSizeDraft.rows}
 								onChange={(event) =>
 									editorActions.setGridSizeDraft((current) => ({
 										...current,
@@ -90,7 +90,7 @@ export default function DiceArenaSidebar({
 								min={3}
 								max={20}
 								step={1}
-								value={editorState.boardSize.cols}
+								value={editorState.gridSizeDraft.cols}
 								onChange={(event) =>
 									editorActions.setGridSizeDraft((current) => ({
 										...current,
