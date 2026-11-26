@@ -1,20 +1,18 @@
 "use client";
-import Link from "next/link";
 import { startTransition, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft,
   ArrowLeftRight,
   BookOpen,
   Check,
   Crown,
   Eye,
   EyeOff,
-  Shield,
   ShieldHalf,
   Skull,
   X,
 } from "lucide-react";
 import { useRoomNotifications } from "./useRoomNotifications";
+import { useAvalonEvents } from "./useAvalonEvents";
 import { Lobby } from "./Lobby";
 import { LobbySettings } from "./LobbySettings";
 import { RoomConsent } from "./RealNameConsent";
@@ -68,16 +66,18 @@ import { PhaseControls } from "./PhaseControls";
 export default function AvalonMain({
   user,
   role = "",
+  preview,
 }: {
   user: User;
   role?: string;
+  preview?: View;
 }) {
-  const [roomId, setRoomId] = useState("");
+  const [roomId, setRoomId] = useState(preview ? "preview" : "");
   const [rooms, setRooms] = useState<AvalonRoomSummary[]>([]);
   const [statsOpen, setStatsOpen] = useState(false);
   const configDirty = useRef(false);
-  const [view, setView] = useState<View | null>(null);
-  const [config, setConfig] = useState<Config | null>(null);
+  const [view, setView] = useState<View | null>(preview ?? null);
+  const [config, setConfig] = useState<Config | null>(preview?.config ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const seenActionTurns = useRef(new Set<string>());
@@ -227,6 +227,10 @@ export default function AvalonMain({
     if (result.ok) setRooms(result.data);
   }
   async function send(move: Move, onSuccess?: () => void | Promise<void>) {
+    if (preview) {
+      setError("미리보기에서는 화면 선택으로 게임 단계를 변경해 주세요.");
+      return;
+    }
     if (!roomId || busy) return;
     setBusy(true);
     setError("");
@@ -253,6 +257,7 @@ export default function AvalonMain({
   }
 
   useEffect(() => {
+    if (preview) return;
     startTransition(() => {
       void getMyAvalonRoom().then((result) => {
         if (result.ok && result.data) {
@@ -267,43 +272,21 @@ export default function AvalonMain({
         else setError(result.error);
       });
     });
-  }, []);
+  }, [preview]);
 
-  useEffect(() => {
-    let active = true;
-    const refresh = () => {
-      startTransition(() => {
-        if (!roomId)
-          void listAvalonRooms().then((result) => {
-            if (active) {
-              if (result.ok) setRooms(result.data);
-              else setError(result.error);
-            }
-          });
-        if (roomId)
-          void getAvalonRoom(roomId).then((result) => {
-            if (!active || busy) return;
-            if (result.ok) setView(result.data.view);
-            else if (
-              result.error === "방 참가자가 아닙니다." ||
-              result.error === "방을 찾을 수 없습니다."
-            ) {
-              setRoomId("");
-              setView(null);
-              setConfig(null);
-            }
-          });
-      });
-    };
-    const tick = () => {
-      if (!document.hidden && !busy) refresh();
-    };
-    const timer = setInterval(tick, roomId ? 2500 : 6000);
-    return () => {
-      active = false;
-      clearInterval(timer);
-    };
-  }, [roomId, busy]);
+  useAvalonEvents(roomId, busy, !!preview, async () => {
+    if (roomId) {
+      const result = await getAvalonRoom(roomId);
+      if (result.ok) setView(previous => JSON.stringify(previous) === JSON.stringify(result.data.view) ? previous : result.data.view);
+      else if (result.error === "방 참가자가 아닙니다." || result.error === "방을 찾을 수 없습니다.") {
+        setRoomId(""); setView(null); setConfig(null);
+      }
+    } else {
+      const result = await listAvalonRooms();
+      if (result.ok) setRooms(result.data);
+      else setError(result.error);
+    }
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -511,54 +494,18 @@ export default function AvalonMain({
   }, [config, view, busy, isHost, roomId]);
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-5 text-slate-900 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-4xl space-y-5">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600"
-          >
-            <ArrowLeft size={17} /> 대시보드
-          </Link>
-          <div className="flex flex-wrap items-center gap-2">
-            {role === "super_admin" && (
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                aria-expanded={teamAssignmentOpen}
-                onClick={() => setTeamAssignmentOpen(true)}
-                className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 focus-visible:outline-2 focus-visible:outline-violet-600"
-              >
-                팀 편성
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setRulebookOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 focus-visible:outline-2 focus-visible:outline-violet-600"
-            >
-              <BookOpen size={16} /> 룰북
-            </button>
-            {view && view.phase !== "lobby" && (
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                aria-expanded={compositionOpen}
-                onClick={() => setCompositionOpen(true)}
-                className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 focus-visible:outline-2 focus-visible:outline-violet-600"
-              >
-                직업 구성
-              </button>
-            )}
-            <span className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-3 py-1 text-sm font-semibold text-violet-800">
-              <Shield size={15} /> 레지스탕스: 아발론
-            </span>
-          </div>
-        </header>
+    <main className="flex-1 bg-[var(--paper)] px-4 pb-5 text-slate-900 sm:px-6 sm:pb-8">
+      <div className="mx-auto max-w-4xl space-y-5 pt-4">
+        {!view && <div className="flex justify-end">
+          <button type="button" onClick={() => setRulebookOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800">
+            <BookOpen size={16}/> 룰북
+          </button>
+        </div>}
         {error && (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600"
           >
             {error}
           </div>
@@ -592,16 +539,7 @@ export default function AvalonMain({
                 }}
               />
             )}
-            {view.phase === "lobby" && (
-              <LobbySettings
-                id={roomId}
-                canManage={isHost}
-                isPrivate={!!view.isPrivate}
-                names={!!view.useRealNames}
-                code={view.joinCode ?? null}
-                refresh={reload}
-              />
-            )}
+
             <div
               className={
                 view.phase === "lobby"
@@ -615,16 +553,38 @@ export default function AvalonMain({
                     <p className="text-xs font-bold uppercase tracking-widest text-violet-600">
                       {view.roomTitle ?? "아발론"}
                     </p>
-                    <h1 className="mt-1 text-2xl font-bold">
+                    <h2 className="mt-1 text-2xl font-bold">
                       {view.phase === "lobby"
-                        ? "대기실"
+                        ? ""
                         : view.phase === "finished"
                           ? "게임 종료"
                           : view.phase === "best_player_vote"
                             ? "베스트 플레이어 투표"
                             : `${view.mission}차 원정`}
-                    </h1>
+                    </h2>
                   </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    {view?.phase === "lobby" && (
+                      <LobbySettings
+                        id={roomId}
+                        canManage={isHost}
+                        isPrivate={!!view.isPrivate}
+                        names={!!view.useRealNames}
+                        code={view.joinCode ?? null}
+                        refresh={reload}
+                      />
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setRulebookOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 focus-visible:outline-2 focus-visible:outline-violet-600"
+                    >
+                      <BookOpen size={16} /> 룰북
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-end justify-end">
                   {view.phase !== "lobby" && (
                     <RejectionTrack
                       rejected={view.rejected}
@@ -636,7 +596,7 @@ export default function AvalonMain({
                   )}
                 </div>
                 {view.phase !== "lobby" && (
-                  <div className="mt-auto grid grid-cols-5 gap-1.5 pt-3">
+                  <div className="mt-auto grid grid-cols-5 gap-1.5 pt-2.25">
                     {Array.from({ length: 5 }, (_, i) => {
                       const result = view.results.find(
                         (r) => r.number === i + 1,
@@ -657,7 +617,7 @@ export default function AvalonMain({
                         <div
                           key={i}
                           aria-label={`${i + 1}차 원정 · 원정대 ${teamSize}명 · ${status}${i === 3 && view.players.length >= 7 ? " · 실패 2명부터 실패" : ""}`}
-                          className={`relative flex min-h-20 flex-col items-center justify-start rounded-lg px-1 py-2 text-center text-xs font-bold ${result ? (result.success ? "bg-sky-100 text-sky-800" : "bg-red-100 text-red-800") : "bg-slate-100 text-slate-500"}`}
+                          className={`relative flex min-h-13.5 flex-col items-center justify-start rounded-lg px-1 py-2 text-center text-xs font-bold ${result ? (result.success ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800") : "bg-slate-100 text-slate-500"}`}
                         >
                           {i === 3 && view.players.length >= 7 && (
                             <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-gray-100 px-1 text-[11px] leading-4 text-slate-500">
@@ -666,14 +626,16 @@ export default function AvalonMain({
                           )}
                           <span className="text-lg leading-none">
                             {teamSize}
-                            <span className="ml-0.5 text-xs">명</span>
+                            <span className="ml-0.25 md:ml-0.5 text-xs">
+                              명
+                            </span>
                           </span>
                           <span>{status}</span>
                           {current && (
                             <ShieldHalf
                               role="img"
                               aria-label="현재 원정"
-                              className="absolute bottom-1 right-1 size-6 fill-amber-100 text-amber-700"
+                              className="absolute top-1 right-0 md:right-1 size-6 md:size-8 fill-amber-100 text-amber-700"
                             />
                           )}
                         </div>
@@ -685,7 +647,7 @@ export default function AvalonMain({
               {view.phase !== "lobby" && (
                 <section className="flex min-w-0 flex-col rounded-2xl bg-white p-2 shadow-sm sm:p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="flex min-w-0 items-center gap-2 font-bold">
+                    <h2 className="flex min-w-0 items-center gap-2 font-bold text-2xl">
                       {showSecret ? (
                         <Eye size={18} className="shrink-0" />
                       ) : (
@@ -783,7 +745,7 @@ export default function AvalonMain({
               <>
                 <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="font-bold">
+                    <h2 className="font-bold text-2xl">
                       참가자 {view.players.length}/{view.config.playerCount}
                     </h2>
                     <button
@@ -798,7 +760,7 @@ export default function AvalonMain({
                     {view.players.map((p) => (
                       <div
                         key={p.id}
-                        className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm"
+                        className="flex items-center justify-between gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm"
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <PlayerAvatar name={p.name} />
@@ -808,14 +770,14 @@ export default function AvalonMain({
                           {p.id === view.hostId && (
                             <Crown
                               aria-label="방장"
-                              className="size-4 shrink-0 text-amber-600"
+                              className="size-4 shrink-0 text-amber-700"
                             />
                           )}
                         </span>
                         {isHost && p.id !== view.hostId && (
                           <button
                             type="button"
-                            className="shrink-0 rounded-lg border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-700"
+                            className="shrink-0 rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600"
                             disabled={busy}
                             onClick={() =>
                               void send({ type: "kick", playerId: p.id })
@@ -870,7 +832,7 @@ export default function AvalonMain({
                     )}
                   </div>
                   {notificationFeedback && (
-                    <p role="status" className="mt-2 text-sm text-slate-600">
+                    <p role="status" className="mt-2 text-sm text-slate-500">
                       {notificationFeedback}
                     </p>
                   )}
@@ -891,10 +853,10 @@ export default function AvalonMain({
             ) : (
               <>
                 <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
-                  <h2 className="font-bold">참가자와 원정 팀</h2>
+                  <h2 className="font-bold text-2xl">참가자와 원정 팀</h2>
                   {canPickTeam && (
                     <>
-                      <p className="mt-1 text-sm text-slate-600">
+                      <p className="mt-1 text-sm text-slate-500">
                         원정 팀원 {required}명을 선택하세요. {team.length}/
                         {required}명 선택
                       </p>
@@ -917,7 +879,7 @@ export default function AvalonMain({
                             type="button"
                             aria-pressed={proposalPick === mode}
                             onClick={() => setProposalPick(mode)}
-                            className={`rounded-lg border px-3 py-2 text-sm font-semibold ${proposalPick === mode ? (mode === "watch" ? "border-violet-500 bg-violet-100 text-violet-900" : "border-amber-500 bg-amber-100 text-amber-900") : "border-slate-200 bg-white text-slate-600"}`}
+                            className={`rounded-lg border px-3 py-2 text-sm font-semibold ${proposalPick === mode ? (mode === "watch" ? "border-violet-500 bg-violet-100 text-violet-900" : "border-amber-500 bg-amber-100 text-amber-900") : "border-slate-300 bg-white text-slate-500"}`}
                           >
                             {label}
                           </button>
@@ -931,13 +893,13 @@ export default function AvalonMain({
                     </>
                   )}
                   {canPickLady && (
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-slate-500">
                       호수의 여인으로 확인할 참가자를 선택하세요. X 표시는 이미
                       여인을 보유했던 사람입니다.
                     </p>
                   )}
                   {canAssassinate && (
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-slate-500">
                       선 진영 참가자를 눌러 암살 대상을 선택하세요.
                     </p>
                   )}
@@ -947,7 +909,7 @@ export default function AvalonMain({
                     view.players.some((p) =>
                       canPickActionTarget(p.id, p.seat),
                     ) && (
-                      <p className="mt-1 text-sm text-slate-600">
+                      <p className="mt-1 text-sm text-slate-500">
                         대상 참가자 카드를 직접 눌러 선택하세요.
                       </p>
                     )}
@@ -1001,7 +963,7 @@ export default function AvalonMain({
                       return (
                         <div
                           key={p.id}
-                          className={`relative min-w-0 rounded-xl border p-2.5 pb-1.5 text-center text-sm ${assassinationSelected ? "border-violet-600 bg-violet-50 ring-2 ring-inset ring-violet-600" : assigningExcalibur ? "border-amber-500 bg-amber-50 ring-2 ring-inset ring-amber-500" : excaliburSelected ? "border-rose-500 bg-rose-50 ring-2 ring-inset ring-rose-500" : otherSelected ? "border-violet-500 bg-violet-50 ring-2 ring-inset ring-violet-500" : view.phase === "finished" || view.phase === "best_player_vote" || view.phase === "assassinate" ? (p.side === "good" ? "border-blue-500 bg-blue-50" : "border-red-500 bg-red-50") : view.phase === "lady" && p.id === view.ladyHolder ? "lady-border-pulse border-cyan-500 bg-cyan-50" : view.phase === "propose" && p.seat === view.leaderSeat ? `leader-border-pulse border-red-500 ${selected ? "bg-amber-50" : "bg-slate-50"}` : ladyCandidate && target === p.id ? "border-emerald-500 bg-emerald-50 ring-2 ring-inset ring-emerald-500" : selected ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-slate-50"}`}
+                          className={`relative min-w-0 rounded-xl border p-2.5 pb-1.5 text-center text-sm ${assassinationSelected ? "border-violet-600 bg-violet-50 ring-2 ring-inset ring-violet-600" : assigningExcalibur ? "border-amber-500 bg-amber-50 ring-2 ring-inset ring-amber-500" : excaliburSelected ? "border-red-500 bg-red-50 ring-2 ring-inset ring-red-500" : otherSelected ? "border-violet-500 bg-violet-50 ring-2 ring-inset ring-violet-500" : view.phase === "finished" || view.phase === "best_player_vote" || view.phase === "assassinate" ? (p.side === "good" ? "border-blue-500 bg-blue-50" : "border-red-500 bg-red-50") : view.phase === "lady" && p.id === view.ladyHolder ? "lady-border-pulse border-blue-500 bg-blue-50" : view.phase === "propose" && p.seat === view.leaderSeat ? `leader-border-pulse border-red-500 ${selected ? "bg-amber-50" : "bg-slate-100"}` : ladyCandidate && target === p.id ? "border-blue-500 bg-blue-50 ring-2 ring-inset ring-blue-500" : selected ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-slate-100"}`}
                         >
                           {ownsExcalibur && <ExcaliburSword />}
                           {view.phase === "finished" ||
@@ -1015,13 +977,13 @@ export default function AvalonMain({
                                 <Crown
                                   role="img"
                                   aria-label="리더 토큰"
-                                  className="absolute left-4 top-3.25 size-8 fill-rose-100 text-rose-600"
+                                  className="absolute left-4 top-3.25 size-8 fill-rose-100 text-red-600"
                                 />
                               )}
                               {excaliburSelected ? (
                                 <ArrowLeftRight
                                   aria-label="엑스칼리버 대상 선택됨"
-                                  className="absolute right-2 top-2 size-8 rounded-full bg-rose-100 p-1 text-rose-700"
+                                  className="absolute right-2 top-2 size-8 rounded-full bg-red-100 p-1 text-red-600"
                                 />
                               ) : otherSelected ? (
                                 <Check
@@ -1031,7 +993,7 @@ export default function AvalonMain({
                               ) : target === p.id && canPickLady ? (
                                 <Check
                                   aria-label="여인 확인 대상 선택됨"
-                                  className="absolute right-2 top-2 size-8 rounded-full bg-emerald-100 p-1 text-emerald-700"
+                                  className="absolute right-2 top-2 size-8 rounded-full bg-blue-100 p-1 text-blue-700"
                                 />
                               ) : assassinationSelected ? (
                                 <Check
@@ -1050,7 +1012,7 @@ export default function AvalonMain({
                                     role="img"
                                     aria-label="호수의 여인 토큰"
                                     strokeWidth={2}
-                                    className="absolute right-2.5 top-1.75 h-10 w-6 text-cyan-500"
+                                    className="absolute right-2.5 top-1.75 h-10 w-6 text-blue-500"
                                   />
                                 )
                               )}{" "}
@@ -1129,7 +1091,7 @@ export default function AvalonMain({
                                 </span>
                               ) : (
                                 selected && (
-                                  <ShieldHalf className="-mt-1 size-10 fill-amber-100 text-amber-600" />
+                                  <ShieldHalf className="-mt-1 size-10 fill-amber-100 text-amber-700" />
                                 )
                               )}
                             </span>
@@ -1142,7 +1104,7 @@ export default function AvalonMain({
                                 {view.assassinated.includes(p.id) && (
                                   <Skull
                                     aria-label="암살 대상"
-                                    className="absolute right-2 size-8 shrink-0 text-red-700"
+                                    className="absolute right-2 size-8 shrink-0 text-red-600"
                                   />
                                 )}
                               </span>
@@ -1176,7 +1138,7 @@ export default function AvalonMain({
                                         ? "투표 완료"
                                         : "원정 카드 제출 완료"
                                   }
-                                  className="absolute right-0 top-1/2 size-7 -translate-y-1/2 rounded-full bg-emerald-100 p-1 text-emerald-700"
+                                  className="absolute right-0 top-1/2 size-7 -translate-y-1/2 rounded-full bg-blue-100 p-1 text-blue-700"
                                 />
                               )}
                             </span>
@@ -1187,7 +1149,7 @@ export default function AvalonMain({
                             )}
                             {view.gawainExiled &&
                               p.publicRoles.includes("gawain") && (
-                                <span className="absolute mt-1.5 left-2.5 block rounded-md bg-rose-100 px-0.75 py-0.25 text-[10px] font-bold text-rose-800">
+                                <span className="absolute mt-1.5 left-2.5 block rounded-md bg-red-100 px-0.75 py-0.25 text-[10px] font-bold text-red-800">
                                   원정 추방
                                 </span>
                               )}
@@ -1222,7 +1184,7 @@ export default function AvalonMain({
                     })}
                   </div>
                   {view.phase === "propose" && (
-                    <div className="mt-4 border-t border-slate-200 pt-4">
+                    <div className="mt-4 border-t border-slate-300 pt-4">
                       {canPickTeam ? (
                         <>
                           {view.config.targeting && (
@@ -1283,7 +1245,7 @@ export default function AvalonMain({
                           </button>
                         </>
                       ) : (
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-500">
                           리더가 원정 팀을 고르고 있습니다.
                         </p>
                       )}
@@ -1313,7 +1275,7 @@ export default function AvalonMain({
                   view.phase !== "finished" &&
                   view.phase !== "best_player_vote" && (
                     <button
-                      className={`${secondary} w-full border-rose-200 text-rose-700`}
+                      className={`${secondary} w-full border-red-200 text-red-600`}
                       disabled={busy}
                       onClick={() => void send({ type: "stop" })}
                     >
@@ -1335,8 +1297,8 @@ export default function AvalonMain({
                 )}
                 {view.config.plot && (
                   <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
-                    <h2 className="font-bold">공개 플롯 카드</h2>
-                    <div className="mt-2 space-y-1 text-sm text-slate-600">
+                    <h2 className="font-bold text-2xl">공개 플롯 카드</h2>
+                    <div className="mt-2 space-y-1 text-sm text-slate-500">
                       {view.players.map((p) => (
                         <div key={p.id}>
                           {p.name}:{" "}
@@ -1394,7 +1356,7 @@ export default function AvalonMain({
             }}
             className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-300 px-5 py-4">
               <div>
                 <h2 id="avalon-composition-title" className="text-lg font-bold">
                   직업 구성

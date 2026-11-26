@@ -51,7 +51,7 @@ export function PhaseControls({
     return (
       <>
         <h2 className="font-bold">역할 확인</h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-500">
           개인 정보를 확인한 뒤 준비해 주세요.{" "}
           {view.players.filter((p) => p.seen).length}/{view.players.length}명
           확인
@@ -71,7 +71,7 @@ export function PhaseControls({
         <h2 className="font-bold">진영 조사 응답</h2>
         {view.pendingCheck?.target === user.id ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               사기꾼은 조사 결과를 선 또는 악으로 선택할 수 있습니다. 실제
               진영은 바뀌지 않습니다.
             </p>
@@ -97,7 +97,7 @@ export function PhaseControls({
             </div>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             진영 조사 응답을 기다립니다.
           </p>
         )}
@@ -133,7 +133,7 @@ export function PhaseControls({
             </button>
           </div>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             카드 보유자의 결정을 기다립니다.
           </p>
         )}
@@ -143,7 +143,7 @@ export function PhaseControls({
     return (
       <>
         <h2 className="font-bold">플롯 카드 배분</h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-500">
           다음 카드: {plotName[view.plotDrawn[0]]}
         </p>
         {isLeader ? (
@@ -160,7 +160,7 @@ export function PhaseControls({
             </button>
           </>
         ) : (
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="mt-3 text-sm text-slate-500">
             리더가 카드를 배분하고 있습니다.
           </p>
         )}
@@ -179,7 +179,7 @@ export function PhaseControls({
         <h2 className="font-bold">{plotName[pending.card]}</h2>
         {acting ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               {pending.card === "restore_your_honor"
                 ? "다른 사람의 플롯 카드를 가져옵니다."
                 : "진영을 확인하거나 보여줄 대상을 선택합니다."}
@@ -218,7 +218,7 @@ export function PhaseControls({
             </button>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             카드 효과 처리를 기다립니다.
           </p>
         )}
@@ -237,7 +237,7 @@ export function PhaseControls({
         <h2 className="font-bold">{plotName[card]}</h2>
         {view.plotOpportunity[0] === user.id ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               카드를 사용하거나 넘길 수 있습니다.
             </p>
             <div className="mt-3 flex gap-2">
@@ -264,7 +264,7 @@ export function PhaseControls({
             </div>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             카드 보유자의 결정을 기다립니다.
           </p>
         )}
@@ -275,7 +275,7 @@ export function PhaseControls({
     return (
       <>
         <h2 className="font-bold">팀 승인 투표</h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-500">
           {view.voteCount}/{view.players.length}명 제출 · 모두 제출하면 투표
           내용이 공개됩니다.
         </p>
@@ -309,7 +309,7 @@ export function PhaseControls({
         <h2 className="font-bold">엑스칼리버 수여</h2>
         {isLeader ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               확정된 원정 팀원 한 명에게 엑스칼리버를 주거나 사용하지 않을 수
               있습니다. 리더 본인은 받을 수 없습니다.
             </p>
@@ -336,7 +336,7 @@ export function PhaseControls({
             </div>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             리더의 엑스칼리버 결정을 기다립니다.
           </p>
         )}
@@ -348,7 +348,7 @@ export function PhaseControls({
         <h2 className="flex items-center gap-2 font-bold">
           <Swords size={18} /> 원정 카드
         </h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-500">
           {view.cardCount}/{view.proposal.length}명 제출 · 두 번째 카드는 직업에
           따라 실패 또는 마법으로 적용됩니다. 불가능한 선택지는 자동으로
           바뀝니다.
@@ -373,7 +373,7 @@ export function PhaseControls({
                     key={card}
                     className={
                       card === "success"
-                        ? "rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        ? "rounded-xl bg-blue-700 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                         : card === "fail"
                           ? "rounded-xl bg-red-600 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                           : primary
@@ -395,7 +395,7 @@ export function PhaseControls({
             </>
           )
         ) : (
-          <p className="mt-4 text-sm text-slate-600">
+          <p className="mt-4 text-sm text-slate-500">
             원정 팀의 카드 제출을 기다립니다.
           </p>
         )}
@@ -407,7 +407,7 @@ export function PhaseControls({
         <h2 className="font-bold">엑스칼리버</h2>
         {view.excaliburHolder === user.id ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               다른 팀원의 카드를 바꾸거나 사용하지 않을 수 있습니다.
             </p>
             <div className="mt-3 flex gap-2">
@@ -428,7 +428,7 @@ export function PhaseControls({
             </div>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             엑스칼리버 소유자의 선택을 기다립니다.
           </p>
         )}
@@ -440,7 +440,7 @@ export function PhaseControls({
         <h2 className="font-bold">함정꾼</h2>
         {isLeader ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               원정 카드 한 장을 확인하고 판정에서 제외합니다.
             </p>
             <p className="mt-3 text-sm text-violet-700">
@@ -455,7 +455,7 @@ export function PhaseControls({
             </button>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             리더의 선택을 기다립니다.
           </p>
         )}
@@ -465,13 +465,13 @@ export function PhaseControls({
     return (
       <>
         <h2 className="font-bold">가웨인의 원정 카드 확인</h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-500">
           {view.mission}차 원정 {view.results.at(-1)?.success ? "성공" : "실패"}{" "}
           · 제출 카드가 공개되었습니다.
         </p>
         {view.myRole.includes("gawain") ? (
           <>
-            <p className="mt-3 text-sm text-slate-600">
+            <p className="mt-3 text-sm text-slate-500">
               이번 원정에 참가하지 않았으므로 팀원 한 명의 내지 않은 카드를
               확인할 수 있습니다. 성공 카드를 제출했다면 추방됩니다.
             </p>
@@ -487,7 +487,7 @@ export function PhaseControls({
             </p>
           </>
         ) : (
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="mt-3 text-sm text-slate-500">
             가웨인의 확인을 기다립니다.
           </p>
         )}
@@ -499,7 +499,7 @@ export function PhaseControls({
         <h2 className="font-bold">호수의 여인</h2>
         {view.ladyHolder === user.id ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               한 사람을 선택해 현재 진영을 비밀리에 확인합니다.
             </p>
             <button
@@ -516,7 +516,7 @@ export function PhaseControls({
             </button>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             호수의 여인 보유자가 조사 중입니다.
           </p>
         )}
@@ -528,7 +528,7 @@ export function PhaseControls({
         <h2 className="font-bold">불신의 충신 모집</h2>
         {view.myRole.includes("assassin") ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               암살자가 불신의 충신을 한 번 추측합니다.
             </p>
             <button
@@ -540,7 +540,7 @@ export function PhaseControls({
             </button>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             암살자의 선택을 기다립니다.
           </p>
         )}
@@ -586,7 +586,7 @@ export function PhaseControls({
             : view.myRole.includes("assassin")
         ) ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-500">
               암살 방식을 고른 뒤 위 참가자 카드에서 선 진영 대상{" "}
               {twoTargets ? "두 명" : "한 명"}을 선택하세요. 직업은 공개되지
               않습니다.
@@ -635,7 +635,7 @@ export function PhaseControls({
             </button>
           </>
         ) : (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-500">
             악 진영의 마지막 선택을 기다립니다.
           </p>
         )}
@@ -651,8 +651,8 @@ export function PhaseControls({
         <h2 className="text-lg font-bold">
           {view.winner === "good" ? "선 진영 승리" : "악 진영 승리"}
         </h2>
-        <p className="mt-1 text-sm text-slate-600">{view.winReason}</p>
-        <p className="mt-3 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-slate-500">{view.winReason}</p>
+        <p className="mt-3 text-sm text-slate-500">
           승리 플레이어 중 한 명에게 투표해 주세요. {view.bestPlayerVoteCount}/
           {view.players.length}명 응답
         </p>
@@ -683,7 +683,7 @@ export function PhaseControls({
         {
           <button
             type="button"
-            className="mt-2 w-full rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+            className="mt-2 w-full rounded-xl px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-40"
             disabled={busy}
             onClick={() =>
               view.bestPlayerVoted
@@ -713,7 +713,7 @@ export function PhaseControls({
         <h2 className="text-xl font-bold">
           {view.winner === "good" ? "선 진영 승리" : "악 진영 승리"}
         </h2>
-        <p className="mt-2 text-sm text-slate-600">{view.winReason}</p>
+        <p className="mt-2 text-sm text-slate-500">{view.winReason}</p>
         <div className="mt-4 rounded-xl bg-amber-50 p-4">
           <h3 className="font-bold text-amber-950">
             베스트 플레이어 투표 결과

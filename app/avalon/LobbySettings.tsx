@@ -1,4 +1,5 @@
 "use client";
+import { Settings, LockKeyhole, Copy } from "lucide-react";
 import { useState } from "react";
 import { configureRoom } from "./actions";
 import { RoomForm } from "./RoomForm";
@@ -35,21 +36,27 @@ export function LobbySettings({
     }
   }
   return (
-    <section className="flex flex-wrap items-center gap-3">
+    <section className="contents">
       {code && (
         <>
-          <strong>방 코드 {code}</strong>
           <button
+            type="button"
+            aria-label="방 코드"
+            title="방 코드"
+            className="inline-flex items-center gap-1.5 -ml-2 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm text-violet-800"
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(code);
-                setStatus("코드를 복사했습니다.");
+                setStatus("복사됨!");
               } catch {
-                setStatus("표시된 코드를 복사해 주세요.");
+                setStatus("실패!");
+              } finally {
+                setTimeout(() => setStatus(""), 2000);
               }
             }}
           >
-            코드 복사
+            {status || code}
+            <Copy size={14} />
           </button>
         </>
       )}
@@ -57,14 +64,27 @@ export function LobbySettings({
       {canManage && (
         <>
           {!isPrivate && (
-            <button disabled={busy} onClick={() => void save(true, names)}>
-              비공개로 전환
+            <button
+              className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm text-violet-800"
+              disabled={busy}
+              onClick={() => void save(true, names)}
+            >
+              비공개 전환
             </button>
           )}
-          <button onClick={() => setOpen(true)}>방 설정</button>
+          <button
+            type="button"
+            aria-label="방 설정"
+            title="방 설정"
+            aria-haspopup="dialog"
+            aria-expanded={open}
+            className="order-last inline-flex items-center justify-center rounded-full border border-violet-200 bg-white p-2 text-violet-800"
+            onClick={() => setOpen(true)}
+          >
+            <Settings size={16} />
+          </button>
         </>
       )}
-      <span role="status">{status}</span>
       {open && (
         <RoomForm
           nickname=""

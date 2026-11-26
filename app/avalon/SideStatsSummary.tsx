@@ -14,7 +14,7 @@ export default function SideStatsSummary({
   return (
     <section
       aria-label="전체 게임의 진영별 승률"
-      className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4"
+      className="mt-4 rounded-xl border border-slate-300 bg-slate-100 p-4"
     >
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-bold">전체 게임 선 · 악 승률</h3>
@@ -30,7 +30,7 @@ export default function SideStatsSummary({
             {stats.goodWins}승 / {stats.games}게임
           </p>
         </div>
-        <div className="rounded-lg bg-rose-50 p-3 text-rose-800">
+        <div className="rounded-lg bg-red-50 p-3 text-red-800">
           <p className="font-semibold">악 진영</p>
           <p className="mt-1 text-xl font-bold">{evilRate}%</p>
           <p className="text-xs">
@@ -42,7 +42,7 @@ export default function SideStatsSummary({
         <div
           role="img"
           aria-label={`선 ${goodRate}%, 악 ${evilRate}%`}
-          className="mt-3 flex h-2 overflow-hidden rounded-full bg-rose-400"
+          className="mt-3 flex h-2 overflow-hidden rounded-full bg-red-400"
         >
           <span
             className="bg-blue-500"

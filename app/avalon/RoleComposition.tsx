@@ -34,7 +34,7 @@ export function RoleComposition({
       {!embedded && (
         <>
           <h2 className="font-bold">저장된 직업 구성</h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-500">
             게임 시작 시 아래 직업이 참가자에게 무작위로 배정됩니다.
           </p>
         </>
@@ -63,7 +63,7 @@ export function RoleComposition({
         ))}
       </div>
       {enabledRules.length > 0 && (
-        <div className="mt-5 border-t border-slate-200 pt-4">
+        <div className="mt-5 border-t border-slate-300 pt-4">
           <h3 className="text-sm font-bold">적용 규칙</h3>
           <ul className="mt-2 flex flex-wrap gap-2">
             {enabledRules.map((rule) => (

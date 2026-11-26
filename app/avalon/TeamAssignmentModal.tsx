@@ -29,7 +29,7 @@ function PersonBadges({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`flex min-h-24 flex-wrap content-start gap-2 rounded-xl border-2 border-dashed p-3 transition-colors ${snapshot.isDraggingOver ? "border-violet-400 bg-violet-50" : "border-slate-200 bg-slate-50"}`}
+          className={`flex min-h-24 flex-wrap content-start gap-2 rounded-xl border-2 border-dashed p-3 transition-colors ${snapshot.isDraggingOver ? "border-violet-400 bg-violet-50" : "border-slate-300 bg-slate-100"}`}
         >
           {people.map((person, index) => (
             <Draggable key={person.id} draggableId={person.id} index={index}>
@@ -38,12 +38,12 @@ function PersonBadges({
                   ref={drag.innerRef}
                   {...drag.draggableProps}
                   {...drag.dragHandleProps}
-                  className={`inline-flex max-w-full items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold shadow-sm ${state.isDragging ? "border-violet-300 bg-white text-violet-800 shadow-lg" : "border-slate-200 bg-white text-slate-700"}`}
+                  className={`inline-flex max-w-full items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold shadow-sm ${state.isDragging ? "border-violet-300 bg-white text-violet-800 shadow-lg" : "border-slate-300 bg-white text-slate-700"}`}
                 >
                   <GripVertical
                     aria-hidden="true"
                     size={14}
-                    className="shrink-0 text-slate-400"
+                    className="shrink-0 text-slate-500"
                   />
                   <span className="truncate">{person.name}</span>
                 </span>
@@ -52,7 +52,7 @@ function PersonBadges({
           ))}
           {provided.placeholder}
           {people.length === 0 && (
-            <p className="self-center text-xs text-slate-400">{emptyLabel}</p>
+            <p className="self-center text-xs text-slate-500">{emptyLabel}</p>
           )}
         </div>
       )}
@@ -251,7 +251,7 @@ export default function TeamAssignmentModal({
         aria-labelledby="team-assignment-title"
         className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 sm:px-6">
           <div>
             <div className="flex items-center gap-2 text-violet-700">
               <Users size={18} />
@@ -304,13 +304,13 @@ export default function TeamAssignmentModal({
                 {teams.map((team, index) => (
                   <article
                     key={team.id}
-                    className="min-w-0 rounded-2xl border border-slate-200 p-3"
+                    className="min-w-0 rounded-2xl border border-slate-300 p-3"
                   >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <h4 className="text-sm font-bold text-slate-800">
                         팀 {index + 1}{" "}
                         <span
-                          className={`font-normal ${team.people.length > 10 ? "text-rose-600" : "text-slate-500"}`}
+                          className={`font-normal ${team.people.length > 10 ? "text-red-600" : "text-slate-500"}`}
                         >
                           · {team.people.length}/10명
                         </span>
@@ -320,7 +320,7 @@ export default function TeamAssignmentModal({
                           type="button"
                           onClick={() => removeTeam(team.id)}
                           aria-label={`팀 ${index + 1} 삭제`}
-                          className="rounded-md px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                          className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                         >
                           삭제
                         </button>
@@ -352,13 +352,13 @@ export default function TeamAssignmentModal({
                 </div>
               </div>
               {loading ? (
-                <div className="rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500">
+                <div className="rounded-xl bg-slate-100 p-6 text-center text-sm text-slate-500">
                   유저 목록을 불러오는 중...
                 </div>
               ) : loadError ? (
                 <p
                   role="alert"
-                  className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700"
+                  className="rounded-xl bg-red-50 p-4 text-sm text-red-600"
                 >
                   {loadError}
                 </p>
@@ -372,13 +372,13 @@ export default function TeamAssignmentModal({
             </section>
           </DragDropContext>
         </div>
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-300 bg-slate-100 px-5 py-4 sm:px-6">
           <div>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-500">
               배치 {assignedCount}명 · 미배치 {pool.length}명
             </p>
             {(integrityError || error) && (
-              <p role="alert" className="mt-1 text-xs text-rose-700">
+              <p role="alert" className="mt-1 text-xs text-red-600">
                 {integrityError || error}
               </p>
             )}

@@ -45,7 +45,7 @@ export function PlayerNote({
       disabled={disabled}
       rows={2}
       placeholder="메모: 나만 보임"
-      className="h-8.5 w-full resize-none overflow-hidden rounded-lg border border-slate-200 bg-white p-2 pb-0 text-xs text-slate-900 outline-none focus:border-violet-500"
+      className="h-8.5 w-full resize-none overflow-hidden rounded-lg border border-slate-300 bg-white p-2 pb-0 text-xs text-slate-900 outline-none focus:border-violet-500"
     />
   );
 }
@@ -104,13 +104,10 @@ export function RejectionTrack({
     <div
       role="img"
       aria-label={`팀 투표 부결 ${rejected}/5회. 5회 부결되면 악 진영 승리`}
-      className="flex items-center gap-1.5 pt-4.5"
+      className="flex items-center gap-1.5"
     >
-      <span
-        aria-hidden="true"
-        className="mr-1 text-sm font-medium text-slate-600"
-      >
-        부결
+      <span aria-hidden="true" className=" text-sm font-medium text-slate-500">
+        부결:
       </span>
       {Array.from({ length: 5 }, (_, index) => {
         const isFinal = index === 4;
@@ -126,10 +123,10 @@ export function RejectionTrack({
           : isCurrent
             ? isFinal
               ? "text-red-600"
-              : "text-orange-500"
+              : "text-amber-500"
             : isFinal
               ? "text-red-600/30"
-              : "text-slate-400";
+              : "text-slate-500";
         return (
           <Icon
             key={index}

@@ -106,7 +106,7 @@ export default function HistoryRankingModal({
         aria-labelledby="avalon-history-title"
         className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 sm:px-6">
           <div>
             <h2
               id="avalon-history-title"
@@ -136,13 +136,13 @@ export default function HistoryRankingModal({
           ) : error ? (
             <p
               role="alert"
-              className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700"
+              className="rounded-xl bg-red-50 p-4 text-sm text-red-600"
             >
               {error}
             </p>
           ) : (
             <>
-              <section className="rounded-xl border border-slate-200 p-4">
+              <section className="rounded-xl border border-slate-300 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="font-bold text-slate-800">
                     경기 선택{" "}
@@ -178,7 +178,7 @@ export default function HistoryRankingModal({
                       return (
                         <li
                           key={game.gameId}
-                          className={`flex items-center gap-2 rounded-lg border p-3 ${checked ? "border-violet-300 bg-violet-50" : "border-slate-200 bg-white"}`}
+                          className={`flex items-center gap-2 rounded-lg border p-3 ${checked ? "border-violet-300 bg-violet-50" : "border-slate-300 bg-white"}`}
                         >
                           <label className="flex min-w-0 flex-1 cursor-pointer gap-2 text-sm">
                             <input
@@ -212,7 +212,7 @@ export default function HistoryRankingModal({
                     })}
                   </ul>
                 ) : (
-                  <p className="mt-4 rounded-lg bg-slate-50 p-5 text-center text-sm text-slate-500">
+                  <p className="mt-4 rounded-lg bg-slate-100 p-5 text-center text-sm text-slate-500">
                     완료된 게임 기록이 없습니다.
                   </p>
                 )}
@@ -227,9 +227,9 @@ export default function HistoryRankingModal({
                     </span>
                   </div>
                   {ranking.length ? (
-                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                    <div className="overflow-x-auto rounded-xl border border-slate-300">
                       <table className="w-full min-w-[540px] text-sm">
-                        <thead className="bg-slate-50 text-xs text-slate-600">
+                        <thead className="bg-slate-100 text-xs text-slate-500">
                           <tr>
                             <th className="px-3 py-3 text-left">
                               순위 · 플레이어
@@ -247,7 +247,7 @@ export default function HistoryRankingModal({
                           {ranking.map((row, index) => (
                             <tr
                               key={row.playerId}
-                              className="border-t border-slate-100"
+                              className="border-t border-slate-300"
                             >
                               <td className="max-w-64 truncate px-3 py-3 font-semibold">
                                 {index + 1}. {row.name}
@@ -267,21 +267,21 @@ export default function HistoryRankingModal({
                       </table>
                     </div>
                   ) : (
-                    <p className="rounded-lg bg-slate-50 p-5 text-center text-sm text-slate-500">
+                    <p className="rounded-lg bg-slate-100 p-5 text-center text-sm text-slate-500">
                       선택한 경기의 참가 기록이 없습니다.
                     </p>
                   )}
                 </section>
               )}
               {records.length > 0 && selected.length === 0 && (
-                <p className="mt-5 rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500">
+                <p className="mt-5 rounded-xl bg-slate-100 p-6 text-center text-sm text-slate-500">
                   경기를 선택하면 해당 경기들의 랭킹을 볼 수 있습니다.
                 </p>
               )}
             </>
           )}
         </div>
-        <footer className="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+        <footer className="flex justify-end border-t border-slate-300 bg-slate-100 px-5 py-4 sm:px-6">
           <button
             type="button"
             onClick={onClose}

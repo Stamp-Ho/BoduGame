@@ -40,7 +40,7 @@ export default function PlayerStatsTable({
   return (
     <div className="mt-3 overflow-x-auto">
       <div className="min-w-[560px]">
-        <div className="grid grid-cols-[minmax(100px,1.5fr)_repeat(4,minmax(90px,1fr))] gap-1 border-b border-slate-200 bg-slate-50 px-3 py-2 text-center text-xs font-bold text-slate-600">
+        <div className="grid grid-cols-[minmax(100px,1.5fr)_repeat(4,minmax(90px,1fr))] gap-1 border-b border-slate-300 bg-slate-100 px-3 py-2 text-center text-xs font-bold text-slate-500">
           <span className="text-left">이름</span>
           {columns.map(({ key, label }) => (
             <button
@@ -70,7 +70,7 @@ export default function PlayerStatsTable({
             return (
               <div
                 key={person.id}
-                className="grid grid-cols-[minmax(100px,1.5fr)_repeat(4,minmax(90px,1fr))] items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-center text-sm"
+                className="grid grid-cols-[minmax(100px,1.5fr)_repeat(4,minmax(90px,1fr))] items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-center text-sm"
               >
                 <span
                   className="truncate text-left font-semibold"
@@ -84,13 +84,13 @@ export default function PlayerStatsTable({
                 </span>
                 <span className="text-blue-700">
                   {rate(row?.goodWins ?? 0, row?.goodGames ?? 0)}%{" "}
-                  <span className="block text-xs text-slate-400">
+                  <span className="block text-xs text-slate-500">
                     {row?.goodWins ?? 0}/{row?.goodGames ?? 0}
                   </span>
                 </span>
-                <span className="text-rose-700">
+                <span className="text-red-600">
                   {rate(row?.evilWins ?? 0, row?.evilGames ?? 0)}%{" "}
-                  <span className="block text-xs text-slate-400">
+                  <span className="block text-xs text-slate-500">
                     {row?.evilWins ?? 0}/{row?.evilGames ?? 0}
                   </span>
                 </span>

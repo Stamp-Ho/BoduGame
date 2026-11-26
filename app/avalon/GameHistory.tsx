@@ -32,11 +32,11 @@ export function GameHistory({ view }: { view: View }) {
     return (
       <article
         key={`vote-${index}`}
-        className="rounded-xl bg-slate-50 p-3 text-sm"
+        className="rounded-xl bg-slate-100 p-3 text-sm"
       >
         <p className="font-semibold">
           {vote.mission}차 원정 · 투표{" "}
-          <span className={vote.approved ? "text-blue-700" : "text-red-700"}>
+          <span className={vote.approved ? "text-blue-700" : "text-red-600"}>
             {vote.approved ? "승인" : "부결"}
           </span>
         </p>
@@ -56,13 +56,13 @@ export function GameHistory({ view }: { view: View }) {
               ) : vote.team.includes(player.id) ? (
                 <ShieldHalf
                   aria-label="제안된 원정대"
-                  className="size-4 shrink-0 fill-amber-100 text-amber-600"
+                  className="size-4 shrink-0 fill-amber-100 text-amber-700"
                 />
               ) : (
                 <span className="w-4" />
               )}
               <span
-                className={`truncate ${vote.team.includes(player.id) ? "text-amber-600 font-bold" : "text-slate-800"}`}
+                className={`truncate ${vote.team.includes(player.id) ? "text-amber-700 font-bold" : "text-slate-800"}`}
               >
                 {player.name}
               </span>
@@ -70,7 +70,7 @@ export function GameHistory({ view }: { view: View }) {
                 aria-hidden="true"
                 className={`size-3.5 shrink-0 rounded-full border border-slate-700 ml-1 ${vote.votes[player.id] ? "bg-white" : "bg-slate-900"}`}
               />
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-slate-500">
                 {vote.votes[player.id] ? "찬성" : "반대"}
               </span>
             </span>
@@ -89,7 +89,7 @@ export function GameHistory({ view }: { view: View }) {
       >
         <p className="font-semibold">
           {result.number}차 원정 ·{" "}
-          <span className={result.success ? "text-blue-700" : "text-red-700"}>
+          <span className={result.success ? "text-blue-700" : "text-red-600"}>
             {result.success ? "성공" : "실패"}
           </span>
         </p>
@@ -115,7 +115,7 @@ export function GameHistory({ view }: { view: View }) {
               {result.excaliburTarget === id && (
                 <ArrowLeftRight
                   aria-label="엑스칼리버로 카드 변경됨"
-                  className="size-4 shrink-0 text-rose-600"
+                  className="size-4 shrink-0 text-red-600"
                 />
               )}
             </span>
@@ -130,11 +130,11 @@ export function GameHistory({ view }: { view: View }) {
             </span>
           )}
         </div>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-slate-500">
           공개된 원정 카드:{" "}
           {result.cards.map((card) => cardName[card]).join(" · ") || "없음"}
         </p>
-        <p className="mt-1 text-slate-600">실패 {result.failCount}개</p>
+        <p className="mt-1 text-slate-500">실패 {result.failCount}개</p>
       </article>
     );
   };
@@ -145,13 +145,13 @@ export function GameHistory({ view }: { view: View }) {
         <div
           role="group"
           aria-label="기록 보기 방식"
-          className="inline-flex rounded-lg border border-slate-200 p-0.5 text-xs font-medium"
+          className="inline-flex rounded-lg border border-slate-300 p-0.5 text-xs font-medium"
         >
           <button
             type="button"
             aria-pressed={mode === "category"}
             onClick={() => setMode("category")}
-            className={`rounded-md px-2.5 py-1.5 ${mode === "category" ? "bg-violet-700 text-white" : "text-slate-600"}`}
+            className={`rounded-md px-2.5 py-1.5 ${mode === "category" ? "bg-violet-700 text-white" : "text-slate-500"}`}
           >
             카테고리별
           </button>
@@ -159,7 +159,7 @@ export function GameHistory({ view }: { view: View }) {
             type="button"
             aria-pressed={mode === "timeline"}
             onClick={() => setMode("timeline")}
-            className={`rounded-md px-2.5 py-1.5 ${mode === "timeline" ? "bg-violet-700 text-white" : "text-slate-600"}`}
+            className={`rounded-md px-2.5 py-1.5 ${mode === "timeline" ? "bg-violet-700 text-white" : "text-slate-500"}`}
           >
             시간순서
           </button>
@@ -192,7 +192,7 @@ export function GameHistory({ view }: { view: View }) {
           {visibleEventIndices.size > 0 && (
             <div className="mt-4">
               <h3 className="text-sm font-semibold">기타 기록</h3>
-              <ol className="mt-2 space-y-1 text-sm text-slate-600">
+              <ol className="mt-2 space-y-1 text-sm text-slate-500">
                 {[...visibleEventIndices].reverse().map((index) => (
                   <li key={index}>• {view.publicEvents[index]}</li>
                 ))}
@@ -224,7 +224,7 @@ export function GameHistory({ view }: { view: View }) {
                 ) : (
                   <article
                     key={`event-${position}`}
-                    className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600"
+                    className="rounded-xl bg-slate-100 p-3 text-sm text-slate-500"
                   >
                     {view.publicEvents[entry.index]}
                   </article>

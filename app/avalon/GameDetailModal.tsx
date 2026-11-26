@@ -57,20 +57,20 @@ function GameStateDetail({ state }: { state: GameState }) {
           {state.players.map((player) => (
             <article
               key={player.id}
-              className={`rounded-xl border p-3 ${player.currentSide === winningSide ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200 bg-white"}`}
+              className={`rounded-xl border p-3 ${player.currentSide === winningSide ? "border-blue-200 bg-blue-50/60" : "border-slate-300 bg-white"}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-semibold text-slate-900">
                   {player.name}
                 </span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${player.currentSide === "good" ? "bg-blue-100 text-blue-800" : "bg-rose-100 text-rose-800"}`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${player.currentSide === "good" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"}`}
                 >
                   {sideName(player.currentSide)} ·{" "}
                   {player.currentSide === winningSide ? "승리" : "패배"}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-slate-500">
                 {player.roles
                   .map((role) => ROLES[role]?.name ?? role)
                   .join(" · ") ||
@@ -82,7 +82,7 @@ function GameStateDetail({ state }: { state: GameState }) {
                 )}
               </p>
               {state.assassinated?.includes(player.id) && (
-                <p className="mt-1 text-xs font-semibold text-rose-700">
+                <p className="mt-1 text-xs font-semibold text-red-600">
                   암살 대상
                 </p>
               )}
@@ -98,14 +98,14 @@ function GameStateDetail({ state }: { state: GameState }) {
             {state.voteHistory.map((vote, index) => (
               <article
                 key={`${vote.mission}-${index}`}
-                className="rounded-xl border border-slate-200 p-3"
+                className="rounded-xl border border-slate-300 p-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-sm font-semibold">
                     {vote.mission}차 원정 팀 투표 ·{" "}
                     <span
                       className={
-                        vote.approved ? "text-blue-700" : "text-rose-700"
+                        vote.approved ? "text-blue-700" : "text-red-600"
                       }
                     >
                       {vote.approved ? "승인" : "부결"}
@@ -115,14 +115,14 @@ function GameStateDetail({ state }: { state: GameState }) {
                     리더: {vote.leaderId ? nameOf(vote.leaderId) : "기록 없음"}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-slate-600">
+                <p className="mt-1 text-xs text-slate-500">
                   제안 팀: {vote.team.map(nameOf).join(", ") || "없음"}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {state.players.map((player) => (
                     <span
                       key={player.id}
-                      className="rounded-lg bg-slate-50 px-2 py-1 text-xs text-slate-700"
+                      className="rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-700"
                     >
                       {player.name}:{" "}
                       {vote.votes[player.id] === undefined
@@ -137,7 +137,7 @@ function GameStateDetail({ state }: { state: GameState }) {
             ))}
           </div>
         ) : (
-          <p className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+          <p className="mt-2 rounded-lg bg-slate-100 p-3 text-sm text-slate-500">
             팀 투표 기록이 없습니다.
           </p>
         )}
@@ -150,20 +150,20 @@ function GameStateDetail({ state }: { state: GameState }) {
             {state.results.map((result) => (
               <article
                 key={result.number}
-                className={`rounded-xl border p-3 ${result.success ? "border-blue-200 bg-blue-50/60" : "border-rose-200 bg-rose-50/60"}`}
+                className={`rounded-xl border p-3 ${result.success ? "border-blue-200 bg-blue-50/60" : "border-red-200 bg-red-50/60"}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-sm font-semibold">
                     {result.number}차 원정 ·{" "}
                     <span
                       className={
-                        result.success ? "text-blue-700" : "text-rose-700"
+                        result.success ? "text-blue-700" : "text-red-600"
                       }
                     >
                       {result.success ? "성공" : "실패"}
                     </span>
                   </h4>
-                  <span className="text-xs text-slate-600">
+                  <span className="text-xs text-slate-500">
                     실패 카드 {result.failCount}장
                   </span>
                 </div>
@@ -176,14 +176,14 @@ function GameStateDetail({ state }: { state: GameState }) {
                     )
                     .join(", ") || "기록 없음"}
                 </p>
-                <p className="mt-1 text-xs text-slate-600">
+                <p className="mt-1 text-xs text-slate-500">
                   공개된 원정 카드:{" "}
                   {result.cards
                     .map((card) => cardText[card] ?? card)
                     .join(" · ") || "없음"}
                 </p>
                 {result.leaderId && (
-                  <p className="mt-1 text-xs text-slate-600">
+                  <p className="mt-1 text-xs text-slate-500">
                     리더: {nameOf(result.leaderId)}
                     {result.excaliburHolder
                       ? ` · 엑스칼리버: ${nameOf(result.excaliburHolder)}`
@@ -194,7 +194,7 @@ function GameStateDetail({ state }: { state: GameState }) {
             ))}
           </div>
         ) : (
-          <p className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+          <p className="mt-2 rounded-lg bg-slate-100 p-3 text-sm text-slate-500">
             원정 기록이 없습니다.
           </p>
         )}
@@ -236,7 +236,7 @@ function GameStateDetail({ state }: { state: GameState }) {
       <section className="mt-5">
         <h3 className="font-bold text-slate-900">기타 게임 기록</h3>
         {state.publicEvents.length ? (
-          <ol className="mt-2 space-y-1 rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+          <ol className="mt-2 space-y-1 rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
             {state.publicEvents.map((event, index) => (
               <li key={`${index}-${event}`}>
                 {index + 1}. {event}
@@ -244,7 +244,7 @@ function GameStateDetail({ state }: { state: GameState }) {
             ))}
           </ol>
         ) : (
-          <p className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+          <p className="mt-2 rounded-lg bg-slate-100 p-3 text-sm text-slate-500">
             기록이 없습니다.
           </p>
         )}
@@ -257,7 +257,7 @@ function GameStateDetail({ state }: { state: GameState }) {
               {state.players.map((player) => (
                 <span
                   key={player.id}
-                  className="rounded-lg bg-slate-50 px-2 py-1 text-xs text-slate-600"
+                  className="rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-500"
                 >
                   {player.name}:{" "}
                   {(state.plotHands[player.id] ?? [])
@@ -318,7 +318,7 @@ export default function GameDetailModal({
         aria-labelledby="avalon-game-detail-title"
         className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 sm:px-6">
           <div>
             <h2
               id="avalon-game-detail-title"
@@ -347,7 +347,7 @@ export default function GameDetailModal({
           ) : error ? (
             <p
               role="alert"
-              className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700"
+              className="rounded-xl bg-red-50 p-4 text-sm text-red-600"
             >
               {error}
             </p>
@@ -371,7 +371,7 @@ export default function GameDetailModal({
                 {game.players.map((player) => (
                   <div
                     key={player.playerId}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 p-3"
+                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-300 p-3"
                   >
                     <span>
                       {player.playerName} ·{" "}
@@ -387,7 +387,7 @@ export default function GameDetailModal({
             </>
           )}
         </div>
-        <footer className="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+        <footer className="flex justify-end border-t border-slate-300 bg-slate-100 px-5 py-4 sm:px-6">
           <button
             type="button"
             onClick={onClose}
