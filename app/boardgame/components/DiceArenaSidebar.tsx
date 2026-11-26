@@ -62,7 +62,7 @@ export default function DiceArenaSidebar({
 		return true;
 	};
 	const sidebarClass = `flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-slate-800 bg-slate-900/95 p-4 text-slate-200 lg:min-h-0 lg:w-[22rem] lg:border-l lg:border-t-0 ${
-		isFullscreen ? 'min-h-0' : 'min-h-175'
+		isFullscreen ? 'min-h-0 max-h-[45dvh] lg:max-h-none' : 'min-h-175'
 	}`;
 	return (
 		<aside className={sidebarClass}>

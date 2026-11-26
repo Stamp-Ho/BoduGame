@@ -14,6 +14,7 @@ export default function ArenaViewport({
 	containerRef,
 	canvasRef,
 	isFullscreen,
+	onEnterFullscreen,
 	tileEvent,
 	eventCountdown,
 	onConfirmTileEvent,
@@ -29,6 +30,7 @@ export default function ArenaViewport({
 	containerRef: RefObject<HTMLDivElement | null>;
 	canvasRef: RefObject<HTMLCanvasElement | null>;
 	isFullscreen: boolean;
+	onEnterFullscreen: () => void;
 	tileEvent: BoardTileData | null;
 	eventCountdown: number | null;
 	onConfirmTileEvent: () => void;
@@ -75,6 +77,16 @@ export default function ArenaViewport({
 			{children}
 
 			{!automaticCamera && <ArenaViewToggle viewMode={viewMode} onSwitchView={onSwitchView} />}
+
+			{!isFullscreen && (
+				<button
+					type="button"
+					onClick={onEnterFullscreen}
+					className="absolute bottom-4 right-4 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs font-semibold text-white lg:hidden"
+				>
+					전체화면
+				</button>
+			)}
 
 			{status && (
 				<div className="pointer-events-none absolute right-4 top-4 w-[min(10,calc(100%-2rem))] rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-right shadow-lg backdrop-blur-md">
