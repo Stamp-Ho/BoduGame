@@ -30,16 +30,40 @@ export function useBoardgameRealtime(options: PollOptions) {
     if (previous !== snapshot) options.onBoardgameReloaded(result.data);
     return snapshot;
   });
+  const deferred = useEffectEvent(() => options.editModeRef.current || options.isRollInProgress());
   const onFailure = useEffectEvent(() => options.onBoardgameReloadError("보드를 새로고침하지 못했습니다."));
   useEffect(()=>{
-    let active=true, last=loadedSnapshot.current;
+    let active = true, last = loadedSnapshot.current, running = false, dirty = false;
     let timer: ReturnType<typeof setTimeout>;
-    async function poll() {
-      try { if (document.visibilityState==="visible") last=await update(()=>active,last); }
-      catch { if(active) onFailure(); }
-      finally { if(active) timer=setTimeout(poll,5000); }
+    const events = new EventSource("/boardgame/events");
+    async function refresh() {
+      dirty = true;
+      if (running || document.hidden) return;
+      running = true;
+      try {
+        while (active && dirty) {
+          dirty = false;
+          last = await update(()=>active,last);
+          if (active && deferred()) {
+            timer = setTimeout(refresh,500);
+            break;
+          }
+        }
+      } catch {
+        if (active) { onFailure(); timer = setTimeout(refresh,2000); }
+      } finally { running = false; }
     }
-    timer=setTimeout(poll,500);
-    return ()=>{active=false;clearTimeout(timer);};
+    const changed = () => {
+      clearTimeout(timer);
+      timer = setTimeout(refresh,150);
+    };
+    events.addEventListener("ready",changed);
+    events.addEventListener("change",changed);
+    const visible = () => { if (!document.hidden) void refresh(); };
+    document.addEventListener("visibilitychange",visible);
+    return ()=>{
+      active=false; clearTimeout(timer); events.close();
+      document.removeEventListener("visibilitychange",visible);
+    };
   },[activeBoardgameId, loadedSnapshot]);
 }
