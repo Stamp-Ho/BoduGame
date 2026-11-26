@@ -1,267 +1,311 @@
-@import "tailwindcss" source(none);
-@import "./avalon/animations.css";
+@import 'tailwindcss' source(none);
+@import './avalon/animations.css';
 @source "./";
 @source "../components";
 
+@layer base {
+	button:enabled {
+		cursor: pointer;
+	}
+}
+
 :root {
-  color-scheme: light;
-  --ink: #4c1d95;
-  --paper: #f1f5f9;
+	color-scheme: light;
+	--ink: #4c1d95;
+	--paper: #f1f5f9;
 }
 body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: system-ui, sans-serif;
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: system-ui, sans-serif;
 }
 .shell {
-  width: min(100% - 2.5rem, 64rem);
-  margin-inline: auto;
+	width: min(100% - 2.5rem, 64rem);
+	margin-inline: auto;
 }
 header {
-  border-bottom: 1px solid #ddd6fe;
+	border-bottom: 1px solid #ddd6fe;
 }
 .header-row,
 nav,
 .account,
 .dialog-title {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
+	display: flex;
+	gap: 1rem;
+	align-items: center;
 }
 .header-row {
-  min-height: 4.5rem;
-  flex-wrap: wrap;
-  padding-block: 0.55rem;
+	min-height: 4.5rem;
+	flex-wrap: wrap;
+	padding-block: 0.55rem;
 }
 .brand {
-  font-weight: 900;
-  font-size: 1.35rem;
-  letter-spacing: -0.08em;
+	font-weight: 900;
+	font-size: 1.35rem;
+	letter-spacing: -0.08em;
 }
 nav {
-  margin-right: auto;
-  font-size: 0.94rem;
+	margin-right: auto;
+	font-size: 0.94rem;
 }
 main.shell {
-  padding-top: 0.5rem;
+	padding-top: 0.5rem;
 }
 h2 {
-  font-weight: 750;
-  letter-spacing: -0.055em;
-  line-height: 1.15;
+	font-weight: 750;
+	letter-spacing: -0.055em;
+	line-height: 1.15;
 }
 h2 {
-  font-size: 1.45rem;
+	font-size: 1.45rem;
 }
 .lead {
-  margin-top: 1rem;
-  line-height: 1.7;
+	margin-top: 1rem;
+	line-height: 1.7;
 }
 .button {
-  padding: 0.6rem 1rem;
-  border-radius: 0.65rem;
-  background: var(--ink);
-  color: white;
-  cursor: pointer;
+	padding: 0.6rem 1rem;
+	border-radius: 0.65rem;
+	background: var(--ink);
+	color: white;
 }
 .button:disabled {
-  opacity: 0.65;
+	opacity: 0.65;
 }
 .games {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 1.25rem;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+	margin-top: 1.25rem;
 }
 .game-card {
-  position: relative;
-  min-width: 0;
-  padding: 1.5rem;
-  border: 1px solid #ffffff30;
-  border-radius: 1rem;
-  box-shadow: inset 0 1px 0 #ffffff40, 0 4px 0 #172d2526, 0 8px 16px #172d2514;
-  transition: transform .18s ease, box-shadow .18s ease;
+	position: relative;
+	min-width: 0;
+	padding: 1.5rem;
+	border: 1px solid #ffffff30;
+	border-radius: 1rem;
+	box-shadow:
+		inset 0 1px 0 #ffffff40,
+		0 4px 0 #172d2526,
+		0 8px 16px #172d2514;
+	transition:
+		transform 0.18s ease,
+		box-shadow 0.18s ease;
 }
 .game-card h2 {
-  margin-top: 1.5rem;
-  font-size: 1.5rem;
+	margin-top: 1.5rem;
+	font-size: 1.5rem;
 }
 .game-card p {
-  margin-top: .5rem;
-  font-size: .875rem;
-  line-height: 1.6;
+	margin-top: 0.5rem;
+	font-size: 0.875rem;
+	line-height: 1.6;
 }
 .game-card span {
-  position: absolute;
-  top: .75rem;
-  right: 1rem;
-  font-size: 1.25rem;
+	position: absolute;
+	top: 0.75rem;
+	right: 1rem;
+	font-size: 1.25rem;
 }
 .game-card:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 #ffffff50, 0 6px 0 #172d2526, 0 12px 20px #172d251a;
+	transform: translateY(-2px);
+	box-shadow:
+		inset 0 1px 0 #ffffff50,
+		0 6px 0 #172d2526,
+		0 12px 20px #172d251a;
 }
 .game-card:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 4px;
+	outline: 3px solid var(--ink);
+	outline-offset: 4px;
 }
-.game-card:active { transform: translateY(2px); }
+.game-card:active {
+	transform: translateY(2px);
+}
 .avalon {
-  background: linear-gradient(145deg, #ffffff 0%, #ede9fe 55%, #c4b5fd 100%);
-  border-color: #ddd6fe;
-  color: #5b21b6;
+	background: linear-gradient(145deg, #ffffff 0%, #ede9fe 55%, #c4b5fd 100%);
+	border-color: #ddd6fe;
+	color: #5b21b6;
 }
 .marble {
-  background: linear-gradient(145deg, #1e3a5f 0%, #0f172a 55%, #020617 100%);
-  border-color: #334155;
-  color: #e0e7ff;
+	background: linear-gradient(145deg, #1e3a5f 0%, #0f172a 55%, #020617 100%);
+	border-color: #334155;
+	color: #e0e7ff;
 }
 @media (max-width: 640px) {
-  .games { grid-template-columns: 1fr; }
+	.games {
+		grid-template-columns: 1fr;
+	}
 }
 @media (prefers-reduced-motion: reduce) {
-  .game-card { transition: none; }
+	.game-card {
+		transition: none;
+	}
 }
 .panel,
 dialog {
-  background: #ffffff;
-  padding: clamp(1rem, 3vw, 2rem);
-  border-radius: 1rem;
+	background: #ffffff;
+	padding: clamp(1rem, 3vw, 2rem);
+	border-radius: 1rem;
 }
 .panel {
-  margin-top: 2rem;
-  border: 1px solid #e2e8f0;
+	margin-top: 2rem;
+	border: 1px solid #e2e8f0;
 }
 .table-scroll {
-  overflow: auto;
+	overflow: auto;
 }
 table {
-  margin-top: 1rem;
-  border-collapse: collapse;
-  width: 100%;
-  text-align: center;
+	margin-top: 1rem;
+	border-collapse: collapse;
+	width: 100%;
+	text-align: center;
 }
 th,
 td {
-  padding: 0.55rem;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
+	padding: 0.55rem;
+	border-bottom: 1px solid #e2e8f0;
+	white-space: nowrap;
 }
 .steps {
-  padding-left: 1.5rem;
-  margin-top: 1rem;
-  list-style: decimal;
-  line-height: 1.9;
+	padding-left: 1.5rem;
+	margin-top: 1rem;
+	list-style: decimal;
+	line-height: 1.9;
 }
 dialog {
-  margin: auto;
-  width: min(100% - 2rem, 24rem);
-  color: var(--ink);
+	margin: auto;
+	width: min(100% - 2rem, 24rem);
+	color: var(--ink);
 }
 dialog::backdrop {
-  background: #0f172ad4;
+	background: #0f172ad4;
 }
 .dialog-title {
-  justify-content: space-between;
+	justify-content: space-between;
 }
 .providers {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+	display: grid;
+	gap: 0.75rem;
+	margin-top: 1.5rem;
 }
 .google {
-  background: white;
-  color: #252525;
-  border: 1px solid #cbd5e1;
+	background: white;
+	color: #252525;
+	border: 1px solid #cbd5e1;
 }
 
 /* The route marker also themes shared navigation and native modal dialogs. */
-.service-theme[data-service-theme="avalon"] {
-  --ink: #4c1d95;
-  --paper: #f8fafc;
+.service-theme[data-service-theme='avalon'] {
+	--ink: #4c1d95;
+	--paper: #f8fafc;
 }
-.service-theme[data-service-theme="avalon"] > header {
-  background: #ffffff;
-  border-color: #ddd6fe;
+.service-theme[data-service-theme='avalon'] > header {
+	background: #ffffff;
+	border-color: #ddd6fe;
 }
-.service-theme[data-service-theme="avalon"] :is(dialog, .panel) {
-  background: #ffffff;
-  border-color: #ddd6fe;
+.service-theme[data-service-theme='avalon'] :is(dialog, .panel) {
+	background: #ffffff;
+	border-color: #ddd6fe;
 }
-.service-theme[data-service-theme="avalon"] dialog::backdrop {
-  background: #0f172ad4;
+.service-theme[data-service-theme='avalon'] dialog::backdrop {
+	background: #0f172ad4;
 }
-.service-theme[data-service-theme="avalon"] .account :is(button, input) {
-  border-color: #ddd6fe;
+.service-theme[data-service-theme='avalon'] .account :is(button, input) {
+	border-color: #ddd6fe;
 }
-.service-theme[data-service-theme="avalon"] .account :is(input, select) {
-  background: #ffffff;
-  color: #334155;
+.service-theme[data-service-theme='avalon'] .account :is(input, select) {
+	background: #ffffff;
+	color: #334155;
 }
-.service-theme[data-service-theme="avalon"] .account form {
-  border-color: #e2e8f0;
+.service-theme[data-service-theme='avalon'] .account form {
+	border-color: #e2e8f0;
 }
-.service-theme[data-service-theme="avalon"] .account form > button:not(.button) {
-  color: #64748b;
-}
-
-.service-theme[data-service-theme="avalon"] dialog {
-  border: 2px solid #c4b5fd;
-  border-radius: 1rem;
-  color: #0f172a;
-  box-shadow: 0 25px 50px -12px #0f172a40;
-}
-.service-theme[data-service-theme="avalon"] dialog .dialog-title {
-  border-bottom: 1px solid #ddd6fe;
-  padding-bottom: .75rem;
-}
-:is(dialog, [role="dialog"]) h2 {
-  color: #000000;
-}
-.service-theme[data-service-theme="avalon"] dialog input[type="checkbox"] {
-  accent-color: #7c3aed;
+.service-theme[data-service-theme='avalon']
+	.account
+	form
+	> button:not(.button) {
+	color: #64748b;
 }
 
-.service-theme[data-service-theme="boardgame"] {
-  color-scheme: dark;
-  --ink: #e2e8f0;
-  --paper: #020617;
+.service-theme[data-service-theme='avalon'] dialog {
+	border: 2px solid #c4b5fd;
+	border-radius: 1rem;
+	color: #0f172a;
+	box-shadow: 0 25px 50px -12px #0f172a40;
 }
-.service-theme[data-service-theme="boardgame"] > header {
-  background: #0f172a;
-  border-color: #334155;
+.service-theme[data-service-theme='avalon'] dialog .dialog-title {
+	border-bottom: 1px solid #ddd6fe;
+	padding-bottom: 0.75rem;
 }
-.service-theme[data-service-theme="boardgame"] .button {
-  background: linear-gradient(to right, #2563eb, #4f46e5);
-  color: #ffffff;
+:is(dialog, [role='dialog']) h2 {
+	color: #000000;
 }
-.service-theme[data-service-theme="boardgame"] :is(dialog, .panel) {
-  background: #0f172a;
-  color: #e2e8f0;
-  border: 1px solid #334155;
+.service-theme[data-service-theme='avalon'] dialog input[type='checkbox'] {
+	accent-color: #7c3aed;
 }
-.service-theme[data-service-theme="boardgame"] dialog::backdrop { background: #020617cc; }
-.service-theme[data-service-theme="boardgame"] :is(dialog, [role="dialog"]) h2 { color: #f8fafc; }
-.service-theme[data-service-theme="boardgame"] .dialog-title { border-bottom: 1px solid #334155; padding-bottom: .75rem; }
-.service-theme[data-service-theme="boardgame"] .account :is(button, input, form) { border-color: #334155; }
-.service-theme[data-service-theme="boardgame"] .account input { background: #020617; color: #e2e8f0; }
-.service-theme[data-service-theme="boardgame"] .account form > button:not(.button) { color: #94a3b8; }
-.service-theme[data-service-theme="boardgame"] .google { background: #f8fafc; color: #0f172a; }
+
+.service-theme[data-service-theme='boardgame'] {
+	color-scheme: dark;
+	--ink: #e2e8f0;
+	--paper: #020617;
+}
+.service-theme[data-service-theme='boardgame'] > header {
+	background: #0f172a;
+	border-color: #334155;
+}
+.service-theme[data-service-theme='boardgame'] .button {
+	background: linear-gradient(to right, #2563eb, #4f46e5);
+	color: #ffffff;
+}
+.service-theme[data-service-theme='boardgame'] :is(dialog, .panel) {
+	background: #0f172a;
+	color: #e2e8f0;
+	border: 1px solid #334155;
+}
+.service-theme[data-service-theme='boardgame'] dialog::backdrop {
+	background: #020617cc;
+}
+.service-theme[data-service-theme='boardgame'] :is(dialog, [role='dialog']) h2 {
+	color: #f8fafc;
+}
+.service-theme[data-service-theme='boardgame'] .dialog-title {
+	border-bottom: 1px solid #334155;
+	padding-bottom: 0.75rem;
+}
+.service-theme[data-service-theme='boardgame']
+	.account
+	:is(button, input, form) {
+	border-color: #334155;
+}
+.service-theme[data-service-theme='boardgame'] .account input {
+	background: #020617;
+	color: #e2e8f0;
+}
+.service-theme[data-service-theme='boardgame']
+	.account
+	form
+	> button:not(.button) {
+	color: #94a3b8;
+}
+.service-theme[data-service-theme='boardgame'] .google {
+	background: #f8fafc;
+	color: #0f172a;
+}
 
 .service-theme {
-  background: var(--paper);
-  color: var(--ink);
+	background: var(--paper);
+	color: var(--ink);
 }
-.service-theme[data-service-theme="avalon"] {
-  color-scheme: light;
-  --paper: #f1f5f9;
+.service-theme[data-service-theme='avalon'] {
+	color-scheme: light;
+	--paper: #f1f5f9;
 }
-.service-theme[data-service-theme="avalon"] .button {
-  background: #7c3aed;
-  color: #ffffff;
+.service-theme[data-service-theme='avalon'] .button {
+	background: #7c3aed;
+	color: #ffffff;
 }
-.service-theme[data-service-theme="avalon"] .google {
-  background: #ffffff;
-  color: #252525;
+.service-theme[data-service-theme='avalon'] .google {
+	background: #ffffff;
+	color: #252525;
 }
