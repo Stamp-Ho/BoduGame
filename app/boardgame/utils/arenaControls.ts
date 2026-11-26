@@ -1,3 +1,4 @@
+import { getTileDrawing } from "../drawing/utils/session";
 import * as THREE from 'three';
 import {
 	ArenaOrbitState,
@@ -135,8 +136,8 @@ export function stepOrbitCamera(
 		orbitState.targetCenter.z -= rightZ * moveSpeed;
 	}
 	const rotateSpeed = 1.8 * dt;
-	if (orbitState.keys.q) orbitState.targetTheta -= rotateSpeed;
-	if (orbitState.keys.e) orbitState.targetTheta += rotateSpeed;
+	if (!getTileDrawing() && orbitState.keys.q) orbitState.targetTheta -= rotateSpeed;
+	if (!getTileDrawing() && orbitState.keys.e) orbitState.targetTheta += rotateSpeed;
 
 	const zoomFactor = Math.exp(1.5 * dt);
 	if (orbitState.keys.z) orbitState.targetRadius /= zoomFactor;
@@ -208,6 +209,7 @@ export function attachArenaControls({
 	onResetView,
 }: AttachArenaControlsParams) {
 	const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+ if(getTileDrawing())return;
 		if (orbitState.preRollView) return;
 		canvas.focus();
 		const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
@@ -243,6 +245,7 @@ export function attachArenaControls({
 	};
 
 	const handlePointerUp = (e: MouseEvent | TouchEvent) => {
+ if(getTileDrawing())return;
 		orbitState.isDragging = false;
 		if (orbitState.preRollView) return;
 
@@ -292,7 +295,7 @@ export function attachArenaControls({
 			e.stopPropagation();
 			orbitState.keys[key] = true;
 		}
-		if (e.key.toLowerCase() === 'r' || e.code === 'KeyR') {
+		if (!getTileDrawing() && (e.key.toLowerCase() === 'r' || e.code === 'KeyR')) {
 			e.preventDefault();
 			e.stopPropagation();
 

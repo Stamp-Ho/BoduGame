@@ -1,4 +1,6 @@
 'use client';
+import { useState } from 'react';
+import { DrawingPanel } from '../drawing/components/DrawingPanel';
 
 import GoldCardManager from '../gold-cards/components/GoldCardManager';
 import { DiceArenaSidebarProps } from '../types/DiceArenaProps';
@@ -8,6 +10,7 @@ import TeamPanel from './TeamPanel';
 export default function DiceArenaSidebar({
 	props: { game, editor, goldCard, view },
 }: DiceArenaSidebarProps) {
+	const [drawing,setDrawing] = useState(false);
 	const { state: gameState, actions: gameActions } = game;
 	const { state: editorState, actions: editorActions } = editor;
 	const { state: goldCardState, actions: goldCardActions } = goldCard;
@@ -22,6 +25,10 @@ export default function DiceArenaSidebar({
 		goldCardState.selectingTargetCardId !== null ||
 		editorState.tileSelectionMode === 'gold-card-effect-target';
 
+	const drawingTile = editorState.selectedTileId ? editorState.boardTilesMap.get(editorState.selectedTileId) : null;
+	if (drawing && drawingTile) return <aside className="w-full overflow-auto bg-slate-900 p-4 lg:w-[22rem]">
+		<DrawingPanel key={drawingTile.id} tile={drawingTile} onUpdate={editorActions.onUpdateTile} onClose={()=>setDrawing(false)}/>
+	</aside>;
 	return (
 		<aside
 			className={`flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-slate-800 bg-slate-900/95 p-4 text-slate-200 lg:min-h-0 lg:w-[22rem] lg:border-l lg:border-t-0 ${
@@ -279,6 +286,7 @@ export default function DiceArenaSidebar({
 			) : editorState.selectedTileId ? (
 				<fieldset disabled={!editorState.canEditSelectedTile} className="contents">
 				<TileInspector
+                    onDraw={()=>setDrawing(true)}
 					tile={
 						editorState.boardTilesMap.get(editorState.selectedTileId) || null
 					}

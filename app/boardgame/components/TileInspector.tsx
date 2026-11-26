@@ -1,6 +1,7 @@
 import { BoardTileData, TileActionType } from '../types/board';
 
 interface TileInspectorProps {
+ onDraw:()=>void;
 	tile: BoardTileData | null;
 	onUpdate: (updated: Partial<BoardTileData>) => void;
 	onDelete: (tileId: string) => void;
@@ -17,6 +18,7 @@ interface TileInspectorProps {
 }
 
 export default function TileInspector({
+ onDraw,
 	tile,
 	onUpdate,
 	onDelete,
@@ -38,7 +40,7 @@ export default function TileInspector({
 		onUpdate({
 			action: {
 				type,
-				params: type === 'MOVE_STEPS' ? { steps: 1 } : type === 'SKIP_TURNS' ? { turns: 1 } : {},
+				params: { drawingId: tile.action.params?.drawingId, drawingVersion: tile.action.params?.drawingVersion, ...(type === 'MOVE_STEPS' ? { steps: 1 } : type === 'SKIP_TURNS' ? { turns: 1 } : {}) },
 			},
 		});
 	};
@@ -91,7 +93,7 @@ export default function TileInspector({
 					/>
 				</label>
 
-				<div className="flex flex-row gap-3">
+				<div className="flex flex-row flex-wrap items-end gap-3">
 					<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
 						배경 색상
 						<div className="flex items-center gap-2">
@@ -121,6 +123,7 @@ export default function TileInspector({
 							</span>
 						</div>
 					</label>
+				<button type="button" onClick={onDraw} className="rounded border border-indigo-500 px-3 py-2 text-sm text-indigo-200">배경 그리기</button>
 				</div>
 			</div>
 

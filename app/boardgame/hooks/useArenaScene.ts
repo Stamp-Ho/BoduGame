@@ -1,3 +1,5 @@
+import { attachTileDrawing } from "../drawing/utils/tileInput";
+import { getTileDrawing } from "../drawing/utils/session";
 import {
 	useEffect,
 	type Dispatch,
@@ -7,7 +9,7 @@ import {
 import * as THREE from 'three';
 import { createHighQualityDiceTemplate } from '../utils/diceFactory';
 import { BoardTileData } from '../types/board';
-import { generateBoardTiles } from '../utils/board';
+import { createTileTopTexture, createDynamicTileTexture, generateBoardTiles } from '../utils/board';
 import { GoldCardData } from '../gold-cards/types';
 import { createGoldCardDeckGroup } from '../gold-cards/utils/threeDeck';
 import { TileSelectionMode } from '../types/DiceArenaProps';
@@ -311,6 +313,7 @@ export function useArenaScene({
 
 		// 7. 애니메이션 & 렌더 루프
 		let lastCallTime = performance.now();
+        let previewRevision = "";
 
 		const animate = () => {
 			const time = performance.now();
@@ -335,6 +338,23 @@ export function useArenaScene({
 				handleDiceSettled(currentValues);
 			}
 
+            const drawing=getTileDrawing();
+            const previewKey=drawing?drawing.tileId+":"+drawing.revision:"";
+            if(drawing&&previewKey!==previewRevision){
+              const mesh=tileMeshMap.get(drawing.tileId),tile=boardTilesMapRef.current.get(drawing.tileId);
+              if(mesh&&tile&&Array.isArray(mesh.material)){
+                const material=mesh.material[2] as THREE.MeshStandardMaterial;
+                const geometry=mesh.geometry as THREE.BoxGeometry;
+                const next=createDynamicTileTexture(tile.label,tile.color,tile.textColor,false,geometry.parameters.width/geometry.parameters.depth,undefined,drawing.canvas);
+                material.map?.dispose();material.map=next;material.needsUpdate=true;
+              }
+            }
+            if(!drawing&&previewRevision){
+              const id=previewRevision.split(":")[0],mesh=tileMeshMap.get(id),tile=boardTilesMapRef.current.get(id);
+              if(mesh&&tile&&Array.isArray(mesh.material)){const material=mesh.material[2] as THREE.MeshStandardMaterial;
+                material.map?.dispose();material.map=createTileTopTexture(tile,mesh.geometry as THREE.BoxGeometry);material.needsUpdate=true;}
+            }
+            previewRevision=previewKey;
 			renderer.render(scene, camera);
 			runtimeRef.current!.reqId = requestAnimationFrame(animate);
 		};
@@ -356,6 +376,7 @@ export function useArenaScene({
 
 		// 캔버스 클릭(드래그 없이 5픽셀 미만 이동) 시 타일·내부 격자 피킹
 		const handleCanvasClick = (clientX: number, clientY: number) => {
+ if(getTileDrawing())return;
 			if (editModeRef.current && !canEditBoardRef.current()) return;
 			if (!containerRef.current) return;
 			//(dist < 5 && editModeRef.current && containerRef.current) {
@@ -515,6 +536,26 @@ export function useArenaScene({
 			}
 		};
 
+        const updateDrawing = (event: Event) => {
+          const detail=(event as CustomEvent<{id:string;version?:number;deleted?:boolean}>).detail;
+          if(!detail?.id)return;
+          const tiles=new Map(boardTilesMapRef.current);
+          for(const [id,tile] of tiles){
+            if(tile.action.params?.drawingId!==detail.id)continue;
+            const params: NonNullable<BoardTileData["action"]["params"]>={...tile.action.params,drawingVersion:detail.version};
+            if(detail.deleted){delete params.drawingId;delete params.drawingVersion;}
+            const updated={...tile,action:{...tile.action,params}};
+            tiles.set(id,updated);
+            const mesh=tileMeshMap.get(id);
+            if(mesh&&Array.isArray(mesh.material)){
+              const material=mesh.material[2] as THREE.MeshStandardMaterial;
+              material.map?.dispose();material.map=createTileTopTexture(updated,mesh.geometry as THREE.BoxGeometry);material.needsUpdate=true;
+            }
+          }
+          boardTilesMapRef.current=tiles;setBoardTilesMap(tiles);
+        };
+        window.addEventListener("boardgame-drawing-saved",updateDrawing);
+		const detachDrawing = attachTileDrawing(canvasRef.current, camera, tileMeshMap);
 		const detachControls = attachArenaControls({
 			canvas: canvasRef.current,
 			orbitState,
@@ -533,6 +574,8 @@ export function useArenaScene({
 			window.removeEventListener('resize', handleResize);
 			resizeObserver.disconnect();
 			detachControls();
+            detachDrawing();
+            window.removeEventListener("boardgame-drawing-saved",updateDrawing);
 			if (runtimeRef.current?.reqId) {
 				cancelAnimationFrame(runtimeRef.current.reqId);
 			}

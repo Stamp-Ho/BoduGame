@@ -139,22 +139,21 @@ export function createTileTexture(
 }
 
 export function createDynamicTileTexture(
-	label: string,
-	bgColor = '#1e293b',
-	textColor = '#ffffff',
-	isGoldCardTile = false,
-	aspectRatio = 1,
+ label:string, bgColor='#1e293b', textColor='#ffffff', isGoldCardTile=false,
+ aspectRatio=1, drawingId?:string, drawingCanvas?:HTMLCanvasElement,
 ): THREE.CanvasTexture {
-	const canvas = document.createElement('canvas');
-	canvas.width = 512;
-	canvas.height = Math.round(canvas.width / aspectRatio);
-	const ctx = canvas.getContext('2d');
-
-	if (ctx) {
-		// 배경
-		ctx.fillStyle = bgColor;
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+ const canvas=document.createElement('canvas');
+ canvas.width=512;canvas.height=Math.round(512/aspectRatio);
+ const ctx=canvas.getContext('2d');
+ const texture=new THREE.CanvasTexture(canvas);
+ let disposed=false;
+ texture.addEventListener('dispose',()=>{disposed=true;});
+ function render(image?:HTMLImageElement|HTMLCanvasElement){
+ if(!ctx||disposed)return;
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle=bgColor;ctx.fillRect(0,0,canvas.width,canvas.height);
+ if(image){const scale=Math.min(canvas.width/image.width,canvas.height/image.height);
+ ctx.drawImage(image,(canvas.width-image.width*scale)/2,(canvas.height-image.height*scale)/2,image.width*scale,image.height*scale);}
 		// 테두리
 		ctx.strokeStyle = '#38bdf8';
 		ctx.lineWidth = 8;
@@ -185,11 +184,14 @@ export function createDynamicTileTexture(
 				ctx.fillText(line, canvas.width / 2, firstLineY + index * lineHeight);
 			});
 		}
-	}
-
-	const texture = new THREE.CanvasTexture(canvas);
-	texture.needsUpdate = true;
-	return texture;
+ texture.needsUpdate=true;
+ }
+ render(drawingCanvas);
+ if(drawingId&&!drawingCanvas){
+ const image=new Image();image.onload=()=>render(image);
+ image.src='/boardgame/drawing/image?id='+encodeURIComponent(drawingId);
+ }
+ return texture;
 }
 
 // 최초 생성과 편집 모두 실제 메시 윗면의 비율로 같은 텍스처를 만든다.
@@ -203,5 +205,6 @@ export function createTileTopTexture(
 		tile.textColor,
 		tile.action.type === 'DRAW_GOLD_CARD',
 		geometry.parameters.width / geometry.parameters.depth,
+ typeof tile.action.params?.drawingId === 'string' ? tile.action.params.drawingId : undefined,
 	);
 }

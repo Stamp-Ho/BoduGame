@@ -7,6 +7,6 @@ export async function GET(request: Request) {
   await connection();
   return changeStream(request, [
     "boardgames", "boardgame_grants", "boardgame_tiles",
-    "boardgame_tile_next", "boardgame_gold_cards",
+    "boardgame_tile_next", "boardgame_gold_cards", "boardgame_drawings",
   ]);
 }
