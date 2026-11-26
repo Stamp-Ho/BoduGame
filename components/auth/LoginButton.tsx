@@ -23,7 +23,6 @@ export function LoginButton() {
       </div>
       <form action={submit} className="providers">
         <input type="hidden" name="next" value={next} />
-        <button className="button kakao" name="provider" value="kakao" disabled={pending}>카카오로 로그인</button>
         <button className="button google" name="provider" value="google" disabled={pending}>Google로 로그인</button>
         {error && <p role="alert">{error}</p>}
       </form>

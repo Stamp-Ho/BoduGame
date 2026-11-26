@@ -3,23 +3,22 @@ import { randomBytes, createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { authConfig } from "./config";
 
-export type LoginProvider = "google" | "kakao";
 
-function providerConfig(provider: LoginProvider) {
-  const google = provider === "google";
-  const id = google ? process.env.GOOGLE_CLIENT_ID : process.env.KAKAO_CLIENT_ID;
-  const secret = google ? process.env.GOOGLE_CLIENT_SECRET : process.env.KAKAO_CLIENT_SECRET;
+
+function providerConfig() {
+  const id = process.env.GOOGLE_CLIENT_ID;
+  const secret = process.env.GOOGLE_CLIENT_SECRET;
   if (!id || !secret) throw new Error("로그인 제공자 설정이 필요합니다.");
   return {
     id, secret, redirect: authConfig().origin + "/auth/callback",
-    authorize: google ? "https://accounts.google.com/o/oauth2/v2/auth" : "https://kauth.kakao.com/oauth/authorize",
-    token: google ? "https://oauth2.googleapis.com/token" : "https://kauth.kakao.com/oauth/token",
-    scope: google ? "openid email" : "openid account_email",
+    authorize: "https://accounts.google.com/o/oauth2/v2/auth",
+    token: "https://oauth2.googleapis.com/token",
+    scope: "openid email",
   };
 }
 
-export function startOAuth(provider: LoginProvider) {
-  const config = providerConfig(provider);
+export function startOAuth() {
+  const config = providerConfig();
   const state = randomBytes(32).toString("base64url");
   const nonce = randomBytes(32).toString("base64url");
   const url = new URL(config.authorize);
@@ -30,8 +29,8 @@ export function startOAuth(provider: LoginProvider) {
   return { location: url.href, state, nonce };
 }
 
-export async function verifiedUserId(provider: LoginProvider, code: string, nonce: string) {
-  const config = providerConfig(provider);
+export async function verifiedUserId(code: string, nonce: string) {
+  const config = providerConfig();
   const response = await fetch(config.token, {
     method: "POST", redirect: "error", cache: "no-store",
     body: new URLSearchParams({
@@ -48,7 +47,7 @@ export async function verifiedUserId(provider: LoginProvider, code: string, nonc
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const { data, error } = await client.auth.signInWithIdToken({
-    provider, token: tokens.id_token, access_token: tokens.access_token, nonce,
+    provider: "google", token: tokens.id_token, access_token: tokens.access_token, nonce,
   });
   if (error || !data.user) throw new Error("계정을 확인할 수 없습니다.");
   return data.user.id;

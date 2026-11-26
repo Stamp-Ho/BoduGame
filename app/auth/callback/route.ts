@@ -14,9 +14,9 @@ export async function GET(request: Request) {
   if (flow && code) {
     try {
       const { provider, state, nonce, next: returnPath } = JSON.parse(Buffer.from(flow, "base64url").toString());
-      if ((provider !== "google" && provider !== "kakao") || typeof nonce !== "string" ||
+      if (provider !== "google" || typeof nonce !== "string" ||
           typeof state !== "string" || state !== params.get("state")) throw new Error("Invalid flow");
-      await issueSession(await verifiedUserId(provider, code, nonce));
+      await issueSession(await verifiedUserId(code, nonce));
       next = localPath(returnPath);
     } catch {
       // A cancelled, expired or superseded login can be retried from the error page.

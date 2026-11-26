@@ -9,10 +9,10 @@ import { cookieOptions, flowCookie, revokeSession } from "@/server/auth/session"
 
 export async function login(_previous: string, form: FormData) {
   const provider = form.get("provider");
-  if (provider !== "kakao" && provider !== "google") return "로그인 방식을 선택해 주세요.";
+  if (provider !== "google") return "로그인 방식을 선택해 주세요.";
   let location: string;
   try {
-    const flow = startOAuth(provider);
+    const flow = startOAuth();
     location = flow.location;
     const next = localPath(form.get("next"));
     const value = JSON.stringify({ provider, state: flow.state, nonce: flow.nonce, next: next.length <= 1500 ? next : "/" });

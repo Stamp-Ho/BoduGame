@@ -14,8 +14,8 @@ npm run dev
 ## 로그인 연결
 
 1. Supabase 프로젝트에 `supabase/migrations/20261125000100_game_sessions.sql`을 적용한다.
-2. Google 웹 애플리케이션과 카카오 로그인 앱의 리다이렉트 URI를 각각 `<APP_ORIGIN>/auth/callback`으로 등록한다. 카카오는 OpenID Connect와 카카오계정 이메일 동의 항목을 설정한다.
-3. Supabase Auth에서 Google·Kakao 제공자를 활성화하고 각 앱과 같은 클라이언트 ID를 등록한다. ID 토큰의 nonce 검증을 활성화한다.
+2. Google 웹 애플리케이션의 리다이렉트 URI를 `<APP_ORIGIN>/auth/callback`으로 등록한다.
+3. Supabase Auth에서 Google 제공자를 활성화하고 Google 앱과 같은 클라이언트 ID를 등록한다. ID 토큰의 nonce 검증을 활성화한다.
 4. 루트의 `.env.local`에 아래 환경 변수를 설정하고 서버를 재시작한다. 배포할 때는 HTTPS 서비스 주소를 사용한다.
 
 ```dotenv
@@ -25,11 +25,9 @@ SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-KAKAO_CLIENT_ID=
-KAKAO_CLIENT_SECRET=
 ```
 
-`KAKAO_CLIENT_ID`에는 REST API 키를 사용한다. DB의 프로필과 세션 저장에는 서버 전용 Supabase secret key 또는 service_role 키를 사용한다.
+DB의 프로필과 세션 저장에는 서버 전용 Supabase secret key 또는 service_role 키를 사용한다.
 
 ## 서버와 브라우저의 경계
 
