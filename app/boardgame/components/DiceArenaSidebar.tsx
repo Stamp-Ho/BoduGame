@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
-import { DrawingPanel } from '../drawing/components/DrawingPanel';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { DrawingPanel, type DrawingPanelHandle } from '../drawing/components/DrawingPanel';
+import type { BoardDrawing } from '../drawing/types';
 
 import GoldCardManager from '../gold-cards/components/GoldCardManager';
 import { DiceArenaSidebarProps } from '../types/DiceArenaProps';
@@ -8,14 +9,29 @@ import TileInspector from './TileInspector';
 import TeamPanel from './TeamPanel';
 
 export default function DiceArenaSidebar({
+	boardId,
+	drawings,
+	setDrawings,
 	props: { game, editor, goldCard, view },
-}: DiceArenaSidebarProps) {
-	const [drawing,setDrawing] = useState(false);
+}: DiceArenaSidebarProps & { boardId: string; drawings: BoardDrawing[]; setDrawings: Dispatch<SetStateAction<BoardDrawing[]>> }) {
+	const [drawingTileKey, setDrawingTileKey] = useState<string | null>(null);
+	const [editingCardId, setEditingCardId] = useState<string | null>(null);
+	const [drawingToast, setDrawingToast] = useState<{ message: string } | null>(null);
+	const showDrawingToast = useCallback((message: string) => setDrawingToast({ message }), []);
+	useEffect(() => {
+		if (!drawingToast) return;
+		const timeout = window.setTimeout(() => setDrawingToast(null), 4000);
+		return () => window.clearTimeout(timeout);
+	}, [drawingToast]);
+	const drawingPanel = useRef<DrawingPanelHandle>(null);
+	const [drawingClipboard, setDrawingClipboard] =
+		useState<HTMLCanvasElement | null>(null);
 	const { state: gameState, actions: gameActions } = game;
 	const { state: editorState, actions: editorActions } = editor;
 	const { state: goldCardState, actions: goldCardActions } = goldCard;
 	const { isFullscreen, onToggleFullscreen } = view;
-	const remainingSkipTurns = gameState.teamSkipTurns[gameState.currentTeamIndex] ?? 0;
+	const remainingSkipTurns =
+		gameState.teamSkipTurns[gameState.currentTeamIndex] ?? 0;
 
 	const preventRoll =
 		gameState.isRolling ||
@@ -25,21 +41,47 @@ export default function DiceArenaSidebar({
 		goldCardState.selectingTargetCardId !== null ||
 		editorState.tileSelectionMode === 'gold-card-effect-target';
 
-	const drawingTile = editorState.selectedTileId ? editorState.boardTilesMap.get(editorState.selectedTileId) : null;
-	if (drawing && drawingTile) return <aside className="w-full overflow-auto bg-slate-900 p-4 lg:w-[22rem]">
-		<DrawingPanel key={drawingTile.id} tile={drawingTile} onUpdate={editorActions.onUpdateTile} onClose={()=>setDrawing(false)}/>
-	</aside>;
+	const selectedTile = editorState.selectedTileId
+		? editorState.boardTilesMap.get(editorState.selectedTileId)
+		: null;
+	const selectedTileKey = editorState.isEditMode && selectedTile
+		? boardId + ':' + selectedTile.id
+		: null;
+	if (drawingTileKey !== null && drawingTileKey !== selectedTileKey) setDrawingTileKey(null);
+	const showDrawing = drawingTileKey !== null && drawingTileKey === selectedTileKey;
+	const editingCard = editorState.isEditMode && goldCardState.cards.some((card) => card.id === editingCardId);
+	if (editingCardId !== null && !editingCard) setEditingCardId(null);
+	const showAddTile = editorState.isEditMode && !editorState.selectedTileId && !editingCard;
+	const editCard = (cardId: string | null) => {
+		if (cardId && drawingPanel.current && !drawingPanel.current.canLeave()) return false;
+		if (cardId) setDrawingTileKey(null);
+		if (goldCardState.selectingTargetCardId && cardId !== goldCardState.selectingTargetCardId) {
+			goldCardActions.onSelectTargetCard(goldCardState.selectingTargetCardId);
+		}
+		setEditingCardId(cardId);
+		return true;
+	};
+	const sidebarClass = `flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-slate-800 bg-slate-900/95 p-4 text-slate-200 lg:min-h-0 lg:w-[22rem] lg:border-l lg:border-t-0 ${
+		isFullscreen ? 'min-h-0' : 'min-h-175'
+	}`;
 	return (
-		<aside
-			className={`flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-slate-800 bg-slate-900/95 p-4 text-slate-200 lg:min-h-0 lg:w-[22rem] lg:border-l lg:border-t-0 ${
-				isFullscreen ? 'min-h-0' : 'min-h-175'
-			}`}
-		>
-			<div className="grid grid-cols-2 gap-2">
+		<aside className={sidebarClass}>
+			<div className="sticky top-0 z-10 grid shrink-0 grid-cols-2 gap-2 bg-slate-900">
 				<button
 					type="button"
-					disabled={editorState.isBusy || editorState.isLockBlocked || !editorState.canEdit || gameState.hasPendingGoldCard || gameState.isRolling || gameState.isMovingPawn}
-					onClick={editorActions.onToggleEditMode}
+					disabled={
+						editorState.isBusy ||
+						editorState.isLockBlocked ||
+						!editorState.canEdit ||
+						gameState.hasPendingGoldCard ||
+						gameState.isRolling ||
+						gameState.isMovingPawn
+					}
+					onClick={() => {
+						if (drawingPanel.current && !drawingPanel.current.canLeave()) return;
+						setDrawingTileKey(null);
+						editorActions.onToggleEditMode();
+					}}
 					className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
 						editorState.isEditMode
 							? 'border-amber-500/50 bg-amber-500/20 text-amber-300'
@@ -56,115 +98,32 @@ export default function DiceArenaSidebar({
 				>
 					{isFullscreen ? '전체화면 종료' : '전체화면'}
 				</button>
+				{showAddTile && (
+					<div className="col-span-2 flex items-center justify-between gap-2">
+						<p className="text-xs font-semibold text-sky-200 motion-safe:animate-pulse">
+							{editorState.isAddingInnerTile
+								? '보드 안쪽의 표시된 칸을 클릭하세요.'
+								: '타일을 선택해 편집하세요'}
+						</p>
+						<button
+							type="button"
+							disabled={editorState.isLockBlocked || editorState.isBusy}
+							aria-pressed={editorState.isAddingInnerTile}
+							onClick={editorActions.onToggleAddInnerTile}
+							className="shrink-0 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-bold text-slate-300 transition-colors enabled:hover:border-sky-400 aria-pressed:border-sky-400 aria-pressed:bg-sky-500/20 aria-pressed:text-sky-200 disabled:opacity-40"
+						>
+							{editorState.isAddingInnerTile ? '칸 추가 중단' : '내부 칸 추가'}
+						</button>
+					</div>
+				)}
 			</div>
 
 			{editorState.isLockBlocked && (
 				<p role="alert" className="text-xs leading-5 text-amber-300">
-					편집 잠금을 확인할 수 없어 입력과 저장을 중단했습니다. 작성한 내용은 유지됩니다.
+					편집 잠금을 확인할 수 없어 입력과 저장을 중단했습니다. 작성한 내용은
+					유지됩니다.
 				</p>
 			)}
-			<fieldset disabled={editorState.isLockBlocked} className="contents">
-			{editorState.isEditMode && (
-				<section className="space-y-3 rounded-xl border border-slate-700 bg-slate-950/50 p-3">
-					<div>
-						<h2 className="text-sm font-bold text-white">격자 크기</h2>
-						<p className="mt-1 text-[11px] text-slate-400">
-							각 변은 3~20칸으로 설정할 수 있습니다.
-						</p>
-					</div>
-					<div className="grid grid-cols-3 gap-3">
-						<label className="space-y-1 text-xs font-semibold text-slate-300">
-							세로 (행)
-							<input
-								type="number"
-								min={3}
-								max={20}
-								step={1}
-								value={editorState.gridSizeDraft.rows}
-								onChange={(event) =>
-									editorActions.setGridSizeDraft((current) => ({
-										...current,
-										rows: event.target.value,
-									}))
-								}
-								className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
-							/>
-						</label>
-						<label className="space-y-1 text-xs font-semibold text-slate-300">
-							가로 (열)
-							<input
-								type="number"
-								min={3}
-								max={20}
-								step={1}
-								value={editorState.gridSizeDraft.cols}
-								onChange={(event) =>
-									editorActions.setGridSizeDraft((current) => ({
-										...current,
-										cols: event.target.value,
-									}))
-								}
-								className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
-							/>
-						</label>
-						<button
-							type="button"
-							onClick={editorActions.onApplyGridSize}
-							disabled={preventRoll}
-							className="w-full self-end rounded-lg border border-sky-600 bg-sky-600 px-3 h-9.5 text-xs font-bold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							격자 적용
-						</button>
-					</div>
-					{editorState.gridSizeError && (
-						<p className="text-xs text-sky-300">{editorState.gridSizeError}</p>
-					)}
-					<div className="border-t border-slate-800 pt-3">
-						<div className="flex gap-2">
-							<button
-								type="button"
-								onClick={editorActions.onToggleAddInnerTile}
-								className={`min-w-0 flex-1 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
-									editorState.isAddingInnerTile
-										? 'border-sky-400 bg-sky-500/20 text-sky-200'
-										: 'border-slate-700 bg-slate-900 text-slate-300 hover:border-sky-400'
-								}`}
-							>
-								{editorState.isAddingInnerTile
-									? '내부 칸 추가 취소'
-									: '내부 격자 추가'}
-							</button>
-							<button
-								type="button"
-								aria-pressed={goldCardState.isManagerOpen}
-								onClick={goldCardActions.onToggleManager}
-								className={`min-w-0 flex-1 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${goldCardState.isManagerOpen ? 'border-amber-400 bg-amber-400/20 text-amber-100' : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-amber-400'}`}
-							>
-								황금 카드 덱 보기 {goldCardState.isManagerOpen ? 'ON' : 'OFF'}
-							</button>
-						</div>
-						{editorState.isAddingInnerTile && (
-							<p className="mt-2 text-[11px] leading-5 text-sky-200">
-								보드 안쪽의 표시된 칸을 클릭하면 타일이 추가됩니다.
-							</p>
-						)}
-					</div>
-				</section>
-			)}
-
-			{editorState.isEditMode && goldCardState.isManagerOpen && (
-				<GoldCardManager
-					cards={goldCardState.cards}
-					availableTiles={[...editorState.boardTilesMap.values()].map(
-						(tile) => ({ id: tile.id, label: tile.label }),
-					)}
-					selectingCardId={goldCardState.selectingTargetCardId}
-					onChange={goldCardActions.setCards}
-					onSelectTarget={goldCardActions.onSelectTargetCard}
-				/>
-			)}
-
-			</fieldset>
 			{!editorState.isEditMode ? (
 				<>
 					<div className="flex items-center justify-between">
@@ -225,7 +184,9 @@ export default function DiceArenaSidebar({
 							? '주사위 굴리는 중...'
 							: gameState.isMovingPawn
 								? '말 이동 중...'
-								: remainingSkipTurns > 0 ? '턴 넘기기' : '주사위 던지기'}
+								: remainingSkipTurns > 0
+									? '턴 넘기기'
+									: '주사위 던지기'}
 					</button>
 					{remainingSkipTurns > 0 && (
 						<p className="text-center text-xs font-semibold text-amber-300">
@@ -273,7 +234,11 @@ export default function DiceArenaSidebar({
 						</div>
 					</div>
 
-					<TeamPanel game={game} tiles={editorState.boardTilesMap} disabled={preventRoll || editorState.isBusy} />
+					<TeamPanel
+						game={game}
+						tiles={editorState.boardTilesMap}
+						disabled={preventRoll || editorState.isBusy}
+					/>
 					<button
 						type="button"
 						disabled={preventRoll}
@@ -283,36 +248,137 @@ export default function DiceArenaSidebar({
 						게임 처음부터 다시하기
 					</button>
 				</>
-			) : editorState.selectedTileId ? (
-				<fieldset disabled={!editorState.canEditSelectedTile} className="contents">
-				<TileInspector
-                    onDraw={()=>setDrawing(true)}
-					tile={
-						editorState.boardTilesMap.get(editorState.selectedTileId) || null
-					}
-					availableTiles={[...editorState.boardTilesMap.values()]}
-					isMovingPosition={editorState.isMovingInnerTile}
-					isSelectingNextTile={editorState.tileSelectionMode === 'next'}
-					isSelectingTeleportTile={editorState.tileSelectionMode === 'teleport'}
-					isSelectingDirectionTile={
-						editorState.tileSelectionMode === 'direction'
-					}
-					onSelectNextTile={() => editorActions.onBeginTileSelection('next')}
-					onSelectTeleportTile={() =>
-						editorActions.onBeginTileSelection('teleport')
-					}
-					onSelectDirectionTile={() =>
-						editorActions.onBeginTileSelection('direction')
-					}
-					onMovePosition={editorActions.onMoveTilePosition}
-					onUpdate={editorActions.onUpdateTile}
-					onDelete={editorActions.onDeleteTile}
-					onClose={editorActions.onCloseTileInspector}
-				/>
+			) : editorState.selectedTileId && !editingCard ? (
+				<fieldset
+					disabled={editorState.isLockBlocked || !editorState.canEditSelectedTile}
+					className="min-w-0 shrink-0"
+				>
+					{showDrawing && selectedTile ? (
+						<DrawingPanel
+							key={selectedTileKey}
+							ref={drawingPanel}
+							drawings={drawings}
+							setDrawings={setDrawings}
+							boardSize={editorState.boardSize}
+							tiles={editorState.boardTilesMap}
+							tile={selectedTile}
+							canEditTile={editorState.canEditSelectedTile && !editorState.isLockBlocked}
+							onUpdate={editorActions.onUpdateTile}
+							onClose={() => setDrawingTileKey(null)}
+							clipboard={drawingClipboard}
+							onCopy={setDrawingClipboard}
+							onMessage={showDrawingToast}
+						/>
+					) : (
+						<TileInspector
+							onDraw={() => setDrawingTileKey(selectedTileKey)}
+							tile={selectedTile ?? null}
+							availableTiles={[...editorState.boardTilesMap.values()]}
+							isMovingPosition={editorState.isMovingInnerTile}
+							isSelectingNextTile={editorState.tileSelectionMode === 'next'}
+							isSelectingTeleportTile={
+								editorState.tileSelectionMode === 'teleport'
+							}
+							isSelectingDirectionTile={
+								editorState.tileSelectionMode === 'direction'
+							}
+							onSelectNextTile={() => editorActions.onBeginTileSelection('next')}
+							onSelectTeleportTile={() =>
+								editorActions.onBeginTileSelection('teleport')
+							}
+							onSelectDirectionTile={() =>
+								editorActions.onBeginTileSelection('direction')
+							}
+							onMovePosition={editorActions.onMoveTilePosition}
+							onUpdate={editorActions.onUpdateTile}
+							onDelete={editorActions.onDeleteTile}
+							onClose={editorActions.onCloseTileInspector}
+						/>
+					)}
 				</fieldset>
-			) : (
-				<div>선택된 타일이 없습니다.</div>
+			) : null}
+			{editorState.isEditMode && (!editorState.selectedTileId || editingCard) && (
+				<fieldset disabled={editorState.isLockBlocked || editorState.isBusy} className="contents">
+					{!editingCard && (
+						<section className="space-y-3 rounded-xl border border-slate-700 bg-slate-950/50 p-3">
+							<div className="flex flex-row gap-2">
+								<h3 className="text-sm font-bold text-white">격자 크기</h3>
+								<p className="mt-1 text-[11px] text-slate-400">
+									각 변은 3~20칸으로 설정할 수 있습니다.
+								</p>
+							</div>
+							<div className="flex flex-row gap-2 w-full">
+								<label className="space-y-1 flex flex-row items-center gap-1 text-xs font-semibold text-slate-300">
+									세로
+									<input
+										type="number"
+										min={3}
+										max={20}
+										step={1}
+										value={editorState.gridSizeDraft.rows}
+										onChange={(event) =>
+											editorActions.setGridSizeDraft((current) => ({
+												...current,
+												rows: event.target.value,
+											}))
+										}
+										className="w-16 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-white outline-none focus:border-sky-500"
+									/>
+								</label>
+								<label className="space-y-1 flex flex-row items-center gap-1 text-xs font-semibold text-slate-300">
+									가로
+									<input
+										type="number"
+										min={3}
+										max={20}
+										step={1}
+										value={editorState.gridSizeDraft.cols}
+										onChange={(event) =>
+											editorActions.setGridSizeDraft((current) => ({
+												...current,
+												cols: event.target.value,
+											}))
+										}
+										className="w-16 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-white outline-none focus:border-sky-500"
+									/>
+								</label>
+								<button
+									type="button"
+									onClick={editorActions.onApplyGridSize}
+									disabled={preventRoll}
+									className="w-18 ml-auto rounded-lg border border-sky-600 bg-sky-600 px-3 h-8.5 text-xs font-bold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+								>
+									적용
+								</button>
+							</div>
+							{editorState.gridSizeError && (
+								<p className="text-xs text-sky-300">
+									{editorState.gridSizeError}
+								</p>
+							)}
+						</section>
+					)}
+
+					<GoldCardManager
+						cards={goldCardState.cards}
+						availableTiles={[...editorState.boardTilesMap.values()].map(
+							(tile) => ({ id: tile.id, label: tile.label }),
+						)}
+						selectingCardId={goldCardState.selectingTargetCardId}
+						editingCardId={editingCardId}
+						onEditCard={editCard}
+						onChange={goldCardActions.setCards}
+						onSelectTarget={goldCardActions.onSelectTargetCard}
+					/>
+				</fieldset>
 			)}
+			<div role="status" className="pointer-events-none fixed inset-x-4 bottom-4 z-[60] flex justify-end">
+				{drawingToast && (
+					<p className="max-w-sm break-words rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-100 shadow-xl">
+						{drawingToast.message}
+					</p>
+				)}
+			</div>
 		</aside>
 	);
 }

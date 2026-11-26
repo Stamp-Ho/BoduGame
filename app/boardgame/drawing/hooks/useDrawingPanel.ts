@@ -1,26 +1,31 @@
 import { useEffect, useState } from "react";
-import type { Brush, Drawing } from "../types";
+import type { BoardDrawing, Brush } from "../types";
 import type { BoardTileData } from "../../types/board";
-import { listDrawings, drawingUses } from "../actions";
+import { loadDrawingImage } from "../utils/images";
 import { useDrawingCanvas } from "./useDrawingCanvas";
 import { setTileDrawing, type TileDrawingSession } from "../utils/session";
 export function useDrawingPanel({
   tile,
+  canEditTile,
+  boardSize,
   onUpdate,
+  onMessage,
 }: {
   tile: BoardTileData;
+  canEditTile: boolean;
+  boardSize: { rows: number; cols: number };
   onUpdate: (tile: Partial<BoardTileData>) => void;
+  onMessage: (message: string) => void;
   onClose: () => void;
 }) {
-  const [rows, setRows] = useState<Drawing[]>([]),
-    [selected, setSelected] = useState<Drawing | null>(null),
+  const [selected, setSelected] = useState<BoardDrawing | null>(null),
     [height, setHeight] = useState(512);
-  const [name, setName] = useState("새 그림"),
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(tile.label),
     [busy, setBusy] = useState(false),
-    [message, setMessage] = useState(""),
-    [unlocked, setUnlocked] = useState(true);
+    [imageEditable, setUnlocked] = useState(true);
+  const unlocked = canEditTile && imageEditable;
   const [loading, setLoading] = useState(false);
-  const [uses, setUses] = useState<Record<string, number>>({});
   const [copy, setCopy] = useState(false);
   const [mode, setMode] = useState<"canvas" | "tile">("tile");
   const [brush, setBrush] = useState<Brush>({
@@ -30,60 +35,41 @@ export function useDrawingPanel({
     width: 4,
     filled: false,
   });
-  const { selectionBox, canvas, dirty, reset, undo, down, move, up, clear } =
-    useDrawingCanvas(brush);
-  useEffect(() => {
-    let active = true;
-    void listDrawings()
-      .then((data) => {
-        if (active) setRows(data);
-        return Promise.all(
-          data.map(
-            async (row) =>
-              [row.id, (await drawingUses(row.id)).length] as const,
-          ),
-        ).then((pairs) => {
-          if (active) setUses(Object.fromEntries(pairs));
-        });
-      })
-      .catch(() => {
-        if (active) setMessage("그림을 불러오지 못했습니다.");
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const {
+    selectionBox, canvas, dirty, reset, undo, copyPixels, pastePixels: paste,
+    startResize, previewResize, finishResize, changeTool, down, move, up, cancelGesture, cancelCurve, clear,
+  } =
+    useDrawingCanvas(brush, (color) => setBrush((current) => ({ ...current, color })));
+  function pastePixels(image: HTMLCanvasElement | ImageBitmap) {
+    if (paste(image)) setBrush((current) => ({ ...current, tool: "select" }));
+  }
   useEffect(() => {
     const element = canvas.current;
-    if (!element) return;
+    if (!editing || !element) return;
     const ctx = element.getContext("2d")!;
     ctx.clearRect(0, 0, 512, height);
     if (selected) {
-      const img = new Image();
       let active = true;
-      img.onload = () => {
+      void loadDrawingImage(selected.id, selected.version).then((img) => {
         if (active) {
           ctx.drawImage(img, 0, 0);
           setLoading(false);
           element.dispatchEvent(new Event("drawing-change"));
         }
-      };
-      img.onerror = () => {
+      }).catch(() => {
         if (active) {
           setLoading(false);
           setUnlocked(false);
-          setMessage("그림을 불러오지 못했습니다.");
+          onMessage("그림을 불러오지 못했습니다.");
         }
-      };
-      img.src =
-        "/boardgame/drawing/image?id=" + selected.id + "&v=" + selected.version;
+      });
       return () => {
         active = false;
       };
     }
-  }, [selected, height, canvas]);
+  }, [editing, selected, height, canvas, onMessage]);
   useEffect(() => {
-    if (mode !== "tile" || !canvas.current) return;
+    if (!editing || mode !== "tile" || !canvas.current) return;
     const session: TileDrawingSession = {
       tileId: tile.id,
       revision: performance.now(),
@@ -97,6 +83,7 @@ export function useDrawingPanel({
       up: (point) => {
         if (unlocked && !busy && !loading) up(point);
       },
+      cancel: cancelGesture,
     };
     const changed = () => {
       session.revision++;
@@ -110,11 +97,10 @@ export function useDrawingPanel({
   });
   async function task(fn: () => Promise<void>) {
     setBusy(true);
-    setMessage("");
     try {
       await fn();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : "요청에 실패했습니다.");
+      onMessage(e instanceof Error ? e.message : "요청에 실패했습니다.");
     } finally {
       setBusy(false);
     }
@@ -122,30 +108,41 @@ export function useDrawingPanel({
   function canLeave() {
     return !dirty || window.confirm("저장하지 않은 그림을 버릴까요?");
   }
-  function open(row: Drawing | null) {
+  function open(row: BoardDrawing | null) {
     if (!canLeave()) return;
     canvas.current
       ?.getContext("2d")
       ?.clearRect(0, 0, 512, canvas.current.height);
-    setCopy(false);
+    const asCopy = row !== null && !row.canEdit;
+    const outer = tile.category === "OUTER";
+    const corner = (tile.gridR === 0 || tile.gridR === boardSize.rows - 1) &&
+      (tile.gridC === 0 || tile.gridC === boardSize.cols - 1);
+    setCopy(asCopy);
     setLoading(!!row);
     setSelected(row ? { ...row } : null);
-    setHeight(row?.height ?? 512);
-    setName(row?.name ?? "새 그림");
-    setUnlocked(!row);
+    setHeight(row?.height ?? (outer && !corner ? 819 : 512));
+    setName(row ? row.name + (asCopy ? " 복사" : "") : tile.label);
+    setUnlocked(true);
+    setEditing(true);
     reset();
   }
-  function point(e: React.PointerEvent<HTMLCanvasElement>) {
-    const r = e.currentTarget.getBoundingClientRect();
+  function closeEditor(discard = false) {
+    if (!discard && !canLeave()) return;
+    setEditing(false);
+    setSelected(null);
+    reset();
+  }
+  function point(e: React.PointerEvent, clamp = true) {
+    const r = canvas.current!.getBoundingClientRect();
+    const x = ((e.clientX - r.left) * 512) / r.width;
+    const y = ((e.clientY - r.top) * height) / r.height;
+    if (!clamp) return { x, y };
     return {
-      x: Math.max(0, Math.min(511, ((e.clientX - r.left) * 512) / r.width)),
-      y: Math.max(
-        0,
-        Math.min(height - 1, ((e.clientY - r.top) * height) / r.height),
-      ),
+      x: Math.max(0, Math.min(511, x)),
+      y: Math.max(0, Math.min(height - 1, y)),
     };
   }
-  function apply(row: Drawing) {
+  function apply(row: Pick<BoardDrawing, "id" | "version">) {
     onUpdate({
       action: {
         ...tile.action,
@@ -156,42 +153,48 @@ export function useDrawingPanel({
         },
       },
     });
-    setMessage("타일에 연결했습니다. 보드 편집 완료 시 연결이 저장됩니다.");
+    onMessage("타일에 연결했습니다. 보드 편집 완료 시 연결이 저장됩니다.");
   }
   return {
-    setMessage,
-    rows,
-    setRows,
     selected,
     setSelected,
     height,
-    setHeight,
+    editing,
     name,
     setName,
     busy,
-    message,
     unlocked,
     setUnlocked,
     loading,
     setLoading,
-    uses,
     copy,
     setCopy,
     mode,
     setMode,
     brush,
-    setBrush,
+    setBrush: (next: Brush) => {
+      changeTool(next.tool);
+      setBrush(next);
+    },
     selectionBox,
     canvas,
     reset,
     undo,
+    copyPixels,
+    pastePixels,
+    startResize,
+    previewResize,
+    finishResize,
     down,
     move,
     up,
+    cancelGesture,
+    cancelCurve,
     clear,
     task,
     canLeave,
     open,
+    closeEditor,
     point,
     apply,
   };

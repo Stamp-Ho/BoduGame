@@ -1,7 +1,7 @@
 import { BoardTileData, TileActionType } from '../types/board';
 
 interface TileInspectorProps {
- onDraw:()=>void;
+	onDraw: () => void;
 	tile: BoardTileData | null;
 	onUpdate: (updated: Partial<BoardTileData>) => void;
 	onDelete: (tileId: string) => void;
@@ -18,7 +18,7 @@ interface TileInspectorProps {
 }
 
 export default function TileInspector({
- onDraw,
+	onDraw,
 	tile,
 	onUpdate,
 	onDelete,
@@ -40,15 +40,23 @@ export default function TileInspector({
 		onUpdate({
 			action: {
 				type,
-				params: { drawingId: tile.action.params?.drawingId, drawingVersion: tile.action.params?.drawingVersion, ...(type === 'MOVE_STEPS' ? { steps: 1 } : type === 'SKIP_TURNS' ? { turns: 1 } : {}) },
+				params: {
+					drawingId: tile.action.params?.drawingId,
+					drawingVersion: tile.action.params?.drawingVersion,
+					...(type === 'MOVE_STEPS'
+						? { steps: 1 }
+						: type === 'SKIP_TURNS'
+							? { turns: 1 }
+							: {}),
+				},
 			},
 		});
 	};
 
 	return (
-		<div className="pointer-events-auto min-h-0 w-full flex-1 overflow-y-auto rounded-2xl border border-slate-700/80 bg-slate-900/95 p-5 text-slate-200 shadow-2xl">
+		<div className="pointer-events-auto min-h-0 w-full flex-1 overflow-y-auto rounded-2xl border border-slate-700/80 bg-slate-900/95 p-3 text-slate-200 shadow-2xl">
 			{/* 헤더 */}
-			<div className="flex items-center justify-between border-b border-slate-800 pb-3">
+			<div className="flex items-start justify-between border-b border-slate-800 pb-3">
 				<div>
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
@@ -56,47 +64,71 @@ export default function TileInspector({
 						</span>
 						<h3 className="font-bold text-sm text-white">타일 속성 편집</h3>
 					</div>
-					<p className="text-[11px] text-slate-500 mt-0.5">ID: {tile.id}</p>
 				</div>
 				<button
 					onClick={onClose}
-					className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-sm"
+					className="shrink-0 rounded border border-red-500/30 px-2 py-1 text-[10px] font-semibold text-red-300 hover:bg-red-500/10"
 				>
-					✕
+					(임시 저장) 닫기
 				</button>
 			</div>
 
 			{/* 1. 기본 표시 정보 */}
 			<div className="flex flex-col gap-3 pb-3">
+				<div className="grid grid-cols-2 gap-4">
+					<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
+						타일 문구
+						<textarea
+							rows={2}
+							value={isGoldCardTile ? '황금 카드 뽑기' : tile.label}
+							onChange={(e) => onUpdate({ label: e.target.value })}
+							readOnly={isGoldCardTile}
+							className="min-h-12 max-h-21 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
+							placeholder="예: 원샷, 한 칸 앞으로"
+						/>
+						<span className="text-[10px] font-normal text-slate-400">
+							Enter로 줄바꿈할 수 있습니다.
+						</span>
+					</label>
+					{/* 2. 각도 조정 */}
+					<div className="flex flex-col gap-1.5">
+						<span className="text-xs font-semibold text-slate-300">
+							타일 방향 회전
+						</span>
+						<div className="grid grid-cols-2 grid-rows-2 gap-1">
+							{[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((rot, idx) => (
+								<button
+									key={rot}
+									type="button"
+									onClick={() => onUpdate({ rotationY: rot })}
+									className={`py-1 text-xs rounded border transition-all ${
+										Math.abs(tile.rotationY - rot) < 0.01
+											? 'bg-sky-600 border-sky-400 text-white font-bold'
+											: 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+									}`}
+								>
+									{[0, 90, 180, 270][idx]}°
+								</button>
+							))}
+						</div>
+					</div>
+				</div>
 				<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
-					타일 라벨 (텍스트)
+					세부 설명 (팝업)
 					<textarea
-						rows={3}
-						value={isGoldCardTile ? '황금 카드 뽑기' : tile.label}
-						onChange={(e) => onUpdate({ label: e.target.value })}
-						readOnly={isGoldCardTile}
-						className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
-						placeholder="예: 원샷, 한 칸 앞으로"
-					/>
-					<span className="text-[10px] font-normal text-slate-500">Enter로 줄바꿈할 수 있습니다.</span>
-				</label>
-
-				<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
-					서브 설명 (작은 글씨)
-					<textarea
-						rows={3}
+						rows={2}
 						value={isGoldCardTile ? '' : tile.subLabel || ''}
 						onChange={(e) => onUpdate({ subLabel: e.target.value })}
 						readOnly={isGoldCardTile}
-						className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
+						className="min-h-12 max-h-24 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
 						placeholder="상세 규칙이나 부연 설명"
 					/>
 				</label>
 
-				<div className="flex flex-row flex-wrap items-end gap-3">
+				<div className="flex flex-row flex-wrap items-center gap-3">
 					<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
 						배경 색상
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-1.75">
 							<input
 								type="color"
 								value={tile.color || '#1e293b'}
@@ -111,7 +143,7 @@ export default function TileInspector({
 
 					<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
 						제목 색상
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-1.75">
 							<input
 								type="color"
 								value={tile.textColor || '#ffffff'}
@@ -123,7 +155,13 @@ export default function TileInspector({
 							</span>
 						</div>
 					</label>
-				<button type="button" onClick={onDraw} className="rounded border border-indigo-500 px-3 py-2 text-sm text-indigo-200">배경 그리기</button>
+					<button
+						type="button"
+						onClick={onDraw}
+						className="rounded border border-indigo-500 px-3 py-2 text-xs text-indigo-200 ml-auto"
+					>
+						배경 그리기
+					</button>
 				</div>
 			</div>
 
@@ -145,29 +183,6 @@ export default function TileInspector({
 				</div>
 			)}
 
-			{/* 2. 각도 조정 */}
-			<div className="flex flex-col gap-1.5">
-				<span className="text-xs font-semibold text-slate-300">
-					타일 텍스처 방향 (Y 회전)
-				</span>
-				<div className="grid grid-cols-4 gap-1">
-					{[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((rot, idx) => (
-						<button
-							key={rot}
-							type="button"
-							onClick={() => onUpdate({ rotationY: rot })}
-							className={`py-1 text-xs rounded border transition-all ${
-								Math.abs(tile.rotationY - rot) < 0.01
-									? 'bg-sky-600 border-sky-400 text-white font-bold'
-									: 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
-							}`}
-						>
-							{[0, 90, 180, 270][idx]}°
-						</button>
-					))}
-				</div>
-			</div>
-
 			{/* 3. 특수 기능(액션) 지정 */}
 			<div className="flex flex-col gap-2 border-t border-slate-800 pt-3">
 				<label className="flex flex-col gap-1 text-xs font-semibold text-slate-300">
@@ -181,13 +196,8 @@ export default function TileInspector({
 							? '보드에서 다음 칸을 클릭하세요'
 							: (availableTiles.find(
 									(candidate) => candidate.id === tile.nextTileIds[0],
-								)?.label ?? '다음 칸 선택')}
+								)?.label ?? '다음 칸을 선택해주세요')}
 					</button>
-					<span className="text-[10px] font-normal text-slate-500">
-						{tile.nextTileIds[0]
-							? `현재 연결: ${tile.nextTileIds[0]} · 주사위 이동 시 이 연결을 따라갑니다.`
-							: '보드의 타일을 클릭해 다음 칸을 지정하세요.'}
-					</span>
 				</label>
 			</div>
 
@@ -223,12 +233,21 @@ export default function TileInspector({
 							value={tile.action.params?.turns ?? 1}
 							onChange={(event) => {
 								const turns = Number(event.target.value);
-								if (!Number.isSafeInteger(turns) || turns < 1 || turns > 99) return;
-								onUpdate({ action: { ...tile.action, params: { ...tile.action.params, turns } } });
+								if (!Number.isSafeInteger(turns) || turns < 1 || turns > 99)
+									return;
+								onUpdate({
+									action: {
+										...tile.action,
+										params: { ...tile.action.params, turns },
+									},
+								});
 							}}
 							className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-white"
 						/>
-						<span className="text-[10px] text-slate-500">도착 턴은 포함하지 않습니다. 매 차례 술 마시기 벌칙 후 턴을 넘깁니다.</span>
+						<span className="text-[10px] text-slate-400">
+							도착 턴은 포함하지 않습니다. 매 차례 술 마시기 벌칙 후 턴을
+							넘깁니다.
+						</span>
 					</label>
 				)}
 				{tile.action.type === 'MOVE_STEPS' && (
@@ -272,7 +291,7 @@ export default function TileInspector({
 									)?.label ?? '워프 위치 선택')}
 						</button>
 						{tile.action.params?.targetTileId && (
-							<span className="text-[10px] text-slate-500">
+							<span className="text-[10px] text-slate-400">
 								워프 대상: {tile.action.params.targetTileId}
 							</span>
 						)}
@@ -294,7 +313,7 @@ export default function TileInspector({
 									)?.label ?? '방향 전환 목적지 선택')}
 						</button>
 						{tile.action.params?.targetTileId && (
-							<span className="text-[10px] text-slate-500">
+							<span className="text-[10px] text-slate-400">
 								다음 주사위 이동 목적지: {tile.action.params.targetTileId}
 							</span>
 						)}
@@ -308,19 +327,19 @@ export default function TileInspector({
 					<button
 						type="button"
 						onClick={() => onDelete(tile.id)}
-						className="px-3 py-1.5 rounded-lg bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600 hover:text-white text-xs font-semibold transition-all"
+						className="px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600 hover:text-white text-xs font-semibold transition-all"
 					>
 						타일 삭제
 					</button>
 				) : (
-					<span className="text-[11px] text-slate-500">
+					<span className="text-[11px] text-slate-400">
 						외곽 기본 타일(삭제 불가)
 					</span>
 				)}
 				<button
 					type="button"
 					onClick={onClose}
-					className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white ml-auto"
+					className="px-4 py-1.5 rounded-lg bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600 hover:text-white text-xs font-semibold transition-all"
 				>
 					완료
 				</button>

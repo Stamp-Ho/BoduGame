@@ -1,0 +1,42 @@
+.selection {
+	position: absolute;
+	pointer-events: none;
+	container-type: size;
+	outline: 1px dashed #7dd3fc;
+}
+
+.handle {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	transform: translate(-50%, -50%);
+	border: 1px solid #0369a1;
+	border-radius: 2px;
+	background: #e0f2fe;
+	pointer-events: auto;
+	touch-action: none;
+}
+
+@container (width <= 24px) or (height <= 24px) {
+	.handle[data-x='0'],
+	.handle[data-y='0'] {
+		opacity: 0;
+		pointer-events: none;
+	}
+	.handle[data-x='-1'] {
+		--handle-x: -100%;
+	}
+	.handle[data-x='1'] {
+		--handle-x: 0%;
+	}
+	.handle[data-y='-1'] {
+		--handle-y: -100%;
+	}
+	.handle[data-y='1'] {
+		--handle-y: 0%;
+	}
+
+	.handle {
+		transform: translate(var(--handle-x, -50%), var(--handle-y, -50%));
+	}
+}

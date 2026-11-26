@@ -8,7 +8,7 @@ import ArenaViewport from "./ArenaViewport";
 import DiceArenaSidebar from "./DiceArenaSidebar";
 
 export default function DiceArena({ role }: { role: string | null }) {
-  const { header, viewport, sidebar, card, restart } = useDiceArena();
+  const { header, viewport, sidebar, card, restart, drawings, setDrawings } = useDiceArena();
   const size = viewport.isFullscreen
     ? "fixed inset-0 z-50 h-screen rounded-none"
     : "h-420 rounded-3xl lg:h-180";
@@ -23,7 +23,7 @@ export default function DiceArena({ role }: { role: string | null }) {
           <ArenaViewport {...viewport}>
             {card && <GoldCardDrawModal {...card} />}
           </ArenaViewport>
-          <DiceArenaSidebar props={sidebar} />
+          <DiceArenaSidebar boardId={header.activeBoardgameId} props={sidebar} drawings={drawings} setDrawings={setDrawings} />
         </div>
       ) : (
         viewport.status && <p role="status">{viewport.status}</p>

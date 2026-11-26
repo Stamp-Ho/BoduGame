@@ -2,17 +2,6 @@
 import { requirePlayer } from "@/server/game-rpc";
 import { sessionDatabase } from "@/server/auth/config";
 import type { Drawing } from "./types";
-export async function listDrawings() {
-  const actor = await requirePlayer(),
-    db = sessionDatabase();
-  const { data, error } = await db
-    .from("boardgame_drawings")
-    .select("*")
-    .eq("owner_id", actor.id)
-    .order("name");
-  if (error) throw new Error("그림 목록을 불러오지 못했습니다.");
-  return data as Drawing[];
-}
 export async function saveDrawing(form: FormData) {
   const actor = await requirePlayer(),
     db = sessionDatabase();

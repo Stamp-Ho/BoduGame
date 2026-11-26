@@ -7,6 +7,7 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { BoardTileData } from '../types/board';
+import type { BoardDrawing } from '../drawing/types';
 import { createTileTopTexture } from '../utils/board';
 import { saveBoardgame } from "../editing";
 import { getBoardgame } from "../actions";
@@ -31,6 +32,7 @@ export interface TileEditorParams {
 	setGridSizeError: Dispatch<SetStateAction<string>>;
 	persistedGridSizeRef: RefObject<{ rows: number; cols: number }>;
 	setBoardRefreshKey: Dispatch<SetStateAction<number>>;
+	setDrawings: Dispatch<SetStateAction<BoardDrawing[]>>;
 	boardTilesMap: Map<string, BoardTileData>;
 	setBoardTilesMap: Dispatch<SetStateAction<Map<string, BoardTileData>>>;
 	boardTilesMapRef: RefObject<Map<string, BoardTileData>>;
@@ -84,6 +86,7 @@ export function useTileEditor({
 	setGridSizeError,
 	persistedGridSizeRef,
 	setBoardRefreshKey,
+	setDrawings,
 	setBoardTilesMap,
 	boardTilesMapRef,
 	tileIdRenamesRef,
@@ -316,6 +319,7 @@ export function useTileEditor({
 			if (refreshed.success) {
 				const game = refreshed.data;
 				setBoardTilesMap(new Map(game.tiles.map((tile) => [tile.id, tile])));
+				setDrawings(game.drawings);
 				boardTilesMapRef.current = new Map(
 					game.tiles.map((tile) => [tile.id, tile]),
 				);

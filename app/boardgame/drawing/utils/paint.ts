@@ -1,4 +1,8 @@
 import type { Brush, Point } from "../types";
+
+const FILL_COLOR_TOLERANCE = 24;
+const FILL_ALPHA_TOLERANCE = 16;
+
 export function paint(
   ctx: CanvasRenderingContext2D,
   brush: Brush,
@@ -55,7 +59,10 @@ export function fill(
     const i = stack.pop()!;
     if (i < 0 || i >= visited.length || visited[i]) continue;
     visited[i] = 1;
-    if (!target.every((v, k) => Math.abs(p[i * 4 + k] - v) <= 16)) continue;
+    if (!target.every((v, k) => {
+      const tolerance = k === 3 ? FILL_ALPHA_TOLERANCE : FILL_COLOR_TOLERANCE;
+      return Math.abs(p[i * 4 + k] - v) <= tolerance;
+    })) continue;
     rgb.forEach((v, k) => {
       p[i * 4 + k] = v;
     });

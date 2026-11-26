@@ -6,6 +6,7 @@ export type TileDrawingSession = {
   down: (p: Point) => void;
   move: (p: Point) => void;
   up: (p: Point) => void;
+  cancel: () => void;
 };
 let active: TileDrawingSession | null = null;
 export const getTileDrawing = () => active;

@@ -12,6 +12,8 @@ import { useGameProgress } from './useGameProgress';
 import { useArenaScene } from './useArenaScene';
 import { useTileEditor } from './useTileEditor';
 import { useBoardgameSession } from './useBoardgameSession';
+import type { BoardDrawing } from '../drawing/types';
+import { preloadDrawingImages } from '../drawing/utils/images';
 import { useGamePlay } from './useGamePlay';
 import { isInnerCellOccupied } from '../utils/boardTiles';
 
@@ -38,6 +40,9 @@ export function useDiceArena() {
 	const [isBoardgameBusy, setIsBoardgameBusy] = useState(false);
 	const [, setIsBoardReady] = useState(false);
 	const [boardRefreshKey, setBoardRefreshKey] = useState(0);
+	const [drawings, setDrawings] = useState<BoardDrawing[]>([]);
+	useEffect(() => preloadDrawingImages(drawings), [drawings]);
+	useEffect(() => () => preloadDrawingImages([]), []);
 
 	const {
 		scores,
@@ -107,7 +112,6 @@ export function useDiceArena() {
 	const runtimeRef = useRef<ArenaRuntime | null>(null);
 
 	const [isEditMode, setIsEditMode] = useState<boolean>(false);
-	const [isGoldCardManagerOpen, setIsGoldCardManagerOpen] = useState(false);
 	const [isAddingInnerTile, setIsAddingInnerTile] = useState(false);
 	const isAddingInnerTileRef = useRef(isAddingInnerTile);
 	const [isMovingInnerTile, setIsMovingInnerTile] = useState(false);
@@ -222,6 +226,7 @@ export function useDiceArena() {
 		setGridSizeError,
 		persistedGridSizeRef,
 		setBoardRefreshKey,
+		setDrawings,
 		boardTilesMap,
 		setBoardTilesMap,
 		boardTilesMapRef,
@@ -401,6 +406,7 @@ export function useDiceArena() {
 		setIsBoardgameBusy,
 		setBoardgameStatus,
 		setBoardRefreshKey,
+		setDrawings,
 		applyServerGridSize,
 		setBoardTilesMap,
 		setGoldCards,
@@ -492,12 +498,10 @@ export function useDiceArena() {
 		goldCard: {
 			state: {
 				cards: goldCards,
-				isManagerOpen: isGoldCardManagerOpen,
 				selectingTargetCardId: selectingGoldCardId,
 			},
 			actions: {
 				setCards: setGoldCards,
-				onToggleManager: () => setIsGoldCardManagerOpen((open) => !open),
 				onSelectTargetCard: selectGoldCardTarget,
 			},
 		},
@@ -519,6 +523,8 @@ export function useDiceArena() {
       popupConfirmButtonRef, viewMode, onSwitchView: switchView, automaticCamera: isRolling || isMovingPawn,
     },
     sidebar: diceArenaProps,
+    drawings,
+    setDrawings,
     card: (isGoldCardModalOpen || tileSelectionMode === 'gold-card-effect-target') ? {
       card: drawnGoldCard, teamNames: teams.map(team => team.name), actorTeamIndex: goldCardActorTeamIndex,
       selectingTarget: tileSelectionMode === 'gold-card-effect-target', onApply: () => applyDrawnGoldCard(),

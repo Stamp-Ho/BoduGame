@@ -77,12 +77,10 @@ export interface BoardEditorDomain {
 export interface GoldCardDomain {
 	state: {
 		cards: GoldCardData[];
-		isManagerOpen: boolean;
 		selectingTargetCardId: string | null;
 	};
 	actions: {
 		setCards: Dispatch<SetStateAction<GoldCardData[]>>;
-		onToggleManager: () => void;
 		onSelectTargetCard: (cardId: string) => void;
 	};
 }

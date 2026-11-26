@@ -19,6 +19,7 @@ import { snapshotOrbit } from "../utils/arenaControls";
 import { DEFAULT_TEAM_NAMES } from "../utils/arena";
 import { useBoardgameRealtime } from "./useBoardgameRealtime";
 import { restoreGameProgress } from "../utils/gameProgress";
+import type { BoardDrawing } from "../drawing/types";
 
 export interface BoardgameSessionParams {
   boardgames: BoardgameSummary[];
@@ -31,6 +32,7 @@ export interface BoardgameSessionParams {
   setBoardRefreshKey: Dispatch<SetStateAction<number>>;
   applyServerGridSize: (rows: number, cols: number) => void;
   setBoardTilesMap: Dispatch<SetStateAction<Map<string, BoardTileData>>>;
+  setDrawings: Dispatch<SetStateAction<BoardDrawing[]>>;
   setGoldCards: Dispatch<SetStateAction<GoldCardData[]>>;
   persistedGoldCardsRef: RefObject<string>;
   setGoldCardDrawPile: Dispatch<SetStateAction<string[]>>;
@@ -75,6 +77,7 @@ export function useBoardgameSession({
   setBoardRefreshKey,
   applyServerGridSize,
   setBoardTilesMap,
+  setDrawings,
   setGoldCards,
   persistedGoldCardsRef,
   setGoldCardDrawPile,
@@ -124,6 +127,7 @@ export function useBoardgameSession({
     }
     applyServerGridSize(game.grid_rows, game.grid_cols);
     setBoardTilesMap(tiles);
+    setDrawings(game.drawings);
     setGoldCards(game.gold_cards);
     persistedGoldCardsRef.current = JSON.stringify(game.gold_cards);
     setGoldCardDrawPile([]);
@@ -142,6 +146,7 @@ export function useBoardgameSession({
     loadedProgressBoardgameIdRef.current = null;
     setActiveBoardgameCanEdit(false);
     setBoardTilesMap(new Map());
+    setDrawings([]);
     setGoldCards([]);
     setSelectedTileId(null);
     selectedTileIdRef.current = null;
@@ -179,6 +184,7 @@ export function useBoardgameSession({
       setActiveBoardgameId(null);
       setActiveBoardgameCanEdit(false);
       setBoardTilesMap(new Map());
+      setDrawings([]);
       setGoldCards([]);
       setGoldCardDrawPile([]);
       setSelectedTileId(null);
@@ -223,6 +229,7 @@ export function useBoardgameSession({
     setActiveBoardgameCanEdit(summary?.can_edit ?? false);
     applyServerGridSize(game.grid_rows, game.grid_cols);
     setBoardTilesMap(new Map(game.tiles.map((tile) => [tile.id, tile])));
+    setDrawings(game.drawings);
     setGoldCards(game.gold_cards);
     persistedGoldCardsRef.current = JSON.stringify(game.gold_cards);
     setGoldCardDrawPile([]);
@@ -248,9 +255,10 @@ export function useBoardgameSession({
     setIsBoardgameBusy(false);
   };
 
-  const handleCreatedBoardgame = (
+  const handleCreatedBoardgame = async (
     game: import("../types/session").CreatedBoard,
   ) => {
+    const snapshot = await getBoardgame(game.id);
     setBoardgames((current) => [
       game,
       ...current.filter((item) => item.id !== game.id),
@@ -260,6 +268,7 @@ export function useBoardgameSession({
     setActiveBoardgameCanEdit(true);
     applyServerGridSize(game.grid_rows, game.grid_cols);
     setBoardTilesMap(new Map());
+    setDrawings(snapshot.success ? snapshot.data.drawings : []);
     setGoldCards([]);
     setTeamNames(DEFAULT_TEAM_NAMES);
     setTeamCount(DEFAULT_TEAM_NAMES.length);
