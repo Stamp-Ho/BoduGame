@@ -44,15 +44,18 @@ export default function BoardgameHeader({
 
   return (
     <>
-      <header className="flex flex-wrap items-center justify-between gap-5 border-0 pb-2 mb-3">
-        <span className="flex items-center gap-2 font-bold text-2xl text-[#1f342e]">
-          <Dices className="h-9 w-9 text-[#1f342e]" /> 주루마블
+      <header className="flex flex-wrap items-center justify-between gap-5 border-0 pb-2 mb-3 pt-2">
+        <span className="flex items-center gap-2 font-bold text-2xl text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-400">
+          <Dices className="h-9 w-9 text-sky-500" /> 주루마블
         </span>
         <div className="flex flex-wrap items-center gap-2">
           {activeBoardgameId ? (
             <button
               type="button"
-              className={action + " bg-[#1f342e] text-white hover:bg-[#25463b]"}
+              className={
+                action +
+                " bg-linear-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500"
+              }
               onClick={() => onSelect(null)}
             >
               목록
@@ -62,7 +65,8 @@ export default function BoardgameHeader({
               <button
                 type="button"
                 className={
-                  action + " bg-[#1f342e] text-white hover:bg-[#25463b]"
+                  action +
+                  " bg-linear-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500"
                 }
                 disabled={isBusy || atLimit}
                 onClick={() => setDialog("create")}
@@ -82,7 +86,7 @@ export default function BoardgameHeader({
                 type="button"
                 className={
                   action +
-                  " border border-[#c9cec3] bg-[#fffefa] text-[#1f342e] hover:bg-[#eeeee4]"
+                  " border border-[#334155] bg-[#0f172a] text-indigo-300 hover:bg-[#1e293b]"
                 }
                 disabled={isBusy}
                 onClick={() => setDialog("share")}
@@ -93,7 +97,7 @@ export default function BoardgameHeader({
                 type="button"
                 className={
                   action +
-                  " border border-[#c9cec3] bg-[#fffefa] text-[#1f342e] hover:bg-[#eeeee4]"
+                  " border border-[#334155] bg-[#0f172a] text-indigo-300 hover:bg-[#1e293b]"
                 }
                 disabled={isBusy}
                 onClick={() => setDialog("delete")}

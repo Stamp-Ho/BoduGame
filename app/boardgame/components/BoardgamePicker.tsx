@@ -42,7 +42,7 @@ export default function BoardgamePicker({
             type="button"
             aria-pressed={filter === id}
             onClick={() => setFilter(id)}
-            className="rounded-full border border-[#c9cec3] bg-[#fffefa] px-3 py-1.5 text-sm font-semibold text-[#52675e] aria-pressed:border-[#1f342e] aria-pressed:bg-[#1f342e] aria-pressed:text-white"
+            className="rounded-full border border-slate-700/50 bg-slate-800/60 px-3 py-1.5 text-sm font-semibold text-[#94a3b8] aria-pressed:border-transparent aria-pressed:bg-linear-to-r aria-pressed:from-blue-600 aria-pressed:to-indigo-600 aria-pressed:text-white hover:border-indigo-500/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
           >
             {label}
           </button>
@@ -50,7 +50,7 @@ export default function BoardgamePicker({
       </div>
       <nav
         aria-label="주루마블 선택"
-        className="m-0 flex w-full flex-wrap items-center gap-3 rounded-2xl border border-[#d8dacf] bg-[#fffefa] p-2 md:p-3"
+        className="m-0 flex w-full flex-wrap items-center gap-3 rounded-2xl border border-slate-700/50 bg-slate-800/60 p-2 md:p-3"
       >
         {visible.map((board) => (
           <button
@@ -59,13 +59,13 @@ export default function BoardgamePicker({
             disabled={busy}
             aria-pressed={selectedId === board.id}
             onClick={() => onSelect(board.id)}
-            className="whitespace-nowrap rounded-xl border border-[#d8dacf] bg-[#f7f5ed] px-3 pt-1.5 pb-2 text-[#1f342e] text-sm font-semibold aria-pressed:border-[#25463b] aria-pressed:bg-[#25463b] aria-pressed:text-white disabled:opacity-50"
+            className="whitespace-nowrap rounded-xl border border-slate-700/50 bg-slate-900/60 px-3 pt-1.5 pb-2 text-indigo-300 text-sm font-semibold aria-pressed:border-transparent aria-pressed:bg-linear-to-r aria-pressed:from-blue-600 aria-pressed:to-indigo-600 aria-pressed:text-white hover:border-indigo-500/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 disabled:opacity-50"
           >
             {board.name}
           </button>
         ))}
         {!busy && !visible.length && (
-          <p className="py-2 text-sm text-[#52675e]">
+          <p className="py-2 text-sm text-[#94a3b8]">
             표시할 주루마블이 없습니다.
           </p>
         )}

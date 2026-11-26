@@ -16,7 +16,7 @@ export default function ArenaViewToggle({
 					onClick={() => onSwitchView('2.5d')}
 					className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
 						viewMode === '2.5d'
-							? 'bg-blue-600 text-white'
+							? 'bg-sky-600 text-white'
 							: 'text-slate-400 hover:text-slate-200'
 					}`}
 				>
@@ -27,7 +27,7 @@ export default function ArenaViewToggle({
 					onClick={() => onSwitchView('top')}
 					className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
 						viewMode === 'top'
-							? 'bg-blue-600 text-white'
+							? 'bg-sky-600 text-white'
 							: 'text-slate-400 hover:text-slate-200'
 					}`}
 				>

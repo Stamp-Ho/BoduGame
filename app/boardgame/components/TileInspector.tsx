@@ -73,7 +73,7 @@ export default function TileInspector({
 						value={isGoldCardTile ? '황금 카드 뽑기' : tile.label}
 						onChange={(e) => onUpdate({ label: e.target.value })}
 						readOnly={isGoldCardTile}
-						className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+						className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
 						placeholder="예: 원샷, 한 칸 앞으로"
 					/>
 					<span className="text-[10px] font-normal text-slate-500">Enter로 줄바꿈할 수 있습니다.</span>
@@ -86,7 +86,7 @@ export default function TileInspector({
 						value={isGoldCardTile ? '' : tile.subLabel || ''}
 						onChange={(e) => onUpdate({ subLabel: e.target.value })}
 						readOnly={isGoldCardTile}
-						className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+						className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
 						placeholder="상세 규칙이나 부연 설명"
 					/>
 				</label>
@@ -155,7 +155,7 @@ export default function TileInspector({
 							onClick={() => onUpdate({ rotationY: rot })}
 							className={`py-1 text-xs rounded border transition-all ${
 								Math.abs(tile.rotationY - rot) < 0.01
-									? 'bg-blue-600 border-blue-400 text-white font-bold'
+									? 'bg-sky-600 border-sky-400 text-white font-bold'
 									: 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
 							}`}
 						>
@@ -198,7 +198,7 @@ export default function TileInspector({
 					onChange={(e) =>
 						handleActionTypeChange(e.target.value as TileActionType)
 					}
-					className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+					className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
 				>
 					<option value="NONE">일반 칸 (액션 없음)</option>
 					<option value="MOVE_STEPS">주사위 눈만큼 이동 (앞으로/뒤로)</option>
@@ -305,7 +305,7 @@ export default function TileInspector({
 					<button
 						type="button"
 						onClick={() => onDelete(tile.id)}
-						className="px-3 py-1.5 rounded-lg bg-rose-600/20 border border-rose-500/40 text-rose-300 hover:bg-rose-600 hover:text-white text-xs font-semibold transition-all"
+						className="px-3 py-1.5 rounded-lg bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600 hover:text-white text-xs font-semibold transition-all"
 					>
 						타일 삭제
 					</button>

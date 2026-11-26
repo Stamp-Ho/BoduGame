@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
+import { ServiceTheme } from "@/components/ServiceTheme";
 
 export const metadata: Metadata = {
   title: { default: "보두게임", template: "%s · 보두게임" },
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  return <html lang="ko"><body><SiteHeader />{children}</body></html>;
+  return <html lang="ko"><body className="flex min-h-dvh flex-col"><ServiceTheme><SiteHeader />{children}</ServiceTheme></body></html>;
 }

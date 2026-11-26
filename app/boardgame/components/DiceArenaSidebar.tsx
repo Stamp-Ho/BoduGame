@@ -110,7 +110,7 @@ export default function DiceArenaSidebar({
 						</button>
 					</div>
 					{editorState.gridSizeError && (
-						<p className="text-xs text-rose-300">{editorState.gridSizeError}</p>
+						<p className="text-xs text-sky-300">{editorState.gridSizeError}</p>
 					)}
 					<div className="border-t border-slate-800 pt-3">
 						<div className="flex gap-2">
@@ -271,7 +271,7 @@ export default function DiceArenaSidebar({
 						type="button"
 						disabled={preventRoll}
 						onClick={gameActions.onRestartGame}
-						className="w-full rounded-xl border border-rose-500/40 bg-rose-950/30 px-4 py-2.5 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-900/50 disabled:opacity-40"
+						className="w-full rounded-xl border border-sky-500/40 bg-sky-950/30 px-4 py-2.5 text-xs font-bold text-sky-200 transition-colors hover:bg-sky-900/50 disabled:opacity-40"
 					>
 						게임 처음부터 다시하기
 					</button>

@@ -63,7 +63,7 @@ export default function GoldCardManager({
 										{card.event.targetTileId && <p className="text-[10px] text-slate-500">대상: {card.event.targetTileId}</p>}
 									</div>
 								)}
-								<button type="button" onClick={() => onChange(cards.filter((item) => item.id !== card.id))} className="rounded border border-rose-500/30 px-2 py-1 text-[10px] font-semibold text-rose-300 hover:bg-rose-500/10">카드 삭제</button>
+								<button type="button" onClick={() => onChange(cards.filter((item) => item.id !== card.id))} className="rounded border border-sky-500/30 px-2 py-1 text-[10px] font-semibold text-sky-300 hover:bg-sky-500/10">카드 삭제</button>
 							</div>
 						</details>
 					))}

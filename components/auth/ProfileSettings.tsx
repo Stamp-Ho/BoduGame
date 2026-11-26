@@ -6,7 +6,7 @@ import { getProfileSettings, saveProfileSettings } from "@/app/auth/profile";
 import { logout } from "@/app/auth/actions";
 
 type Profile = Awaited<ReturnType<typeof getProfileSettings>>;
-const field = "mt-1 block w-full rounded-lg border border-[#c9cec3] bg-[#fffefa] p-2.5";
+const field = "mt-1 block w-full rounded-lg border border-[#ddd6fe] bg-[#ffffff] p-2.5";
 
 export function ProfileSettings({ initial }: { initial: Profile }) {
   const [profile, setProfile] = useState(initial);
@@ -15,7 +15,7 @@ export function ProfileSettings({ initial }: { initial: Profile }) {
   const [error, setError] = useState("");
   return <>
     <button type="button" onClick={() => { setError(""); setOpen(true); }}
-      aria-label="내 정보 수정" className="rounded-full border border-[#c9cec3] p-2.5">
+      aria-label="내 정보 수정" className="rounded-full border border-[#ddd6fe] p-2.5">
       <UserRound size={20}/>
     </button>
     {open && <GameDialog title={profile.completed ? "내 정보 수정" : "내 정보 등록"} onClose={() => { if(profile.completed) setOpen(false); }}>
@@ -32,8 +32,8 @@ export function ProfileSettings({ initial }: { initial: Profile }) {
         {error && <p role="alert">{error}</p>}
         <button className="button" disabled={busy}>{busy ? "저장 중…" : "저장"}</button>
       </form>
-      <form action={logout} className="border-t border-[#d8dacf] pt-4">
-        <button disabled={busy} className="text-sm text-[#52675e]">로그아웃</button>
+      <form action={logout} className="border-t border-[#e2e8f0] pt-4">
+        <button disabled={busy} className="text-sm text-[#64748b]">로그아웃</button>
       </form>
     </GameDialog>}
   </>;
