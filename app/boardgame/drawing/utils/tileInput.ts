@@ -77,11 +77,13 @@ export function attachTileDrawing(
   canvas.addEventListener("pointerdown", down);
   canvas.addEventListener("pointermove", move);
   canvas.addEventListener("pointerup", up);
+  canvas.addEventListener("pointercancel", cancel);
   canvas.addEventListener("lostpointercapture", cancel);
   return () => {
     canvas.removeEventListener("pointerdown", down);
     canvas.removeEventListener("pointermove", move);
     canvas.removeEventListener("pointerup", up);
+    canvas.removeEventListener("pointercancel", cancel);
     canvas.removeEventListener("lostpointercapture", cancel);
     stroke?.session.cancel();
   };

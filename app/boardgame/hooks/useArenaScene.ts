@@ -323,6 +323,7 @@ export function useArenaScene({
 		let lastCallTime = performance.now();
         let previewRevision = "";
 		const initialCursor = renderer.domElement.style.cursor;
+		const initialTouchAction = renderer.domElement.style.touchAction;
 		let wasDrawing = false;
 		const getEditingTile = () => {
 			const tileId = selectedTileIdRef.current;
@@ -357,6 +358,7 @@ export function useArenaScene({
 			if (Boolean(drawing) !== wasDrawing) {
 				wasDrawing = Boolean(drawing);
 				renderer.domElement.style.cursor = wasDrawing ? 'default' : initialCursor;
+				renderer.domElement.style.touchAction = wasDrawing ? 'none' : initialTouchAction;
 			}
             const previewKey=drawing?drawing.tileId+":"+drawing.revision:"";
             if(drawing&&previewKey!==previewRevision){
@@ -593,6 +595,7 @@ export function useArenaScene({
 
 		return () => {
 			renderer.domElement.style.cursor = initialCursor;
+			renderer.domElement.style.touchAction = initialTouchAction;
 			if (getEditingTile()) {
 				editingView.current = { boardId: activeBoardgameId, view: snapshotOrbit(orbitState) };
 			}
