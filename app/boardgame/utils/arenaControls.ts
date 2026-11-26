@@ -75,7 +75,7 @@ export function focusTileOrbit(orbit: ArenaOrbitState, tile: THREE.Object3D) {
 	orbit.targetCenter.set(tile.position.x, 0, tile.position.z);
 	orbit.targetTheta = tile.rotation.y;
 	orbit.targetPhi = 0.001;
-	orbit.targetRadius = 12.5;
+	orbit.targetRadius = 9.5;
 }
 
 export function focusDiceForRoll(orbit: ArenaOrbitState, onArrive: () => void) {
